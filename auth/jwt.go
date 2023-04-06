@@ -13,15 +13,17 @@ var jwtKey = []byte(utils.GetValueFromEnv("JWT_KEY", "supersecret"))
 type JWTClaim struct {
 	Username string `json:"username"`
 	Email    string `json:"email"`
+	UserId   string `json:"user_id"`
 	jwt.RegisteredClaims
 }
 
-func GenerateJWTToken(username string, email string) (tokenString string, err error) {
+func GenerateJWTToken(username string, email string, userId string) (tokenString string, err error) {
 	expirationTime := time.Now().Add(12 * time.Hour)
 
 	claims := &JWTClaim{
 		Username: username,
 		Email:    email,
+		UserId:   userId,
 		RegisteredClaims: jwt.RegisteredClaims{
 			ExpiresAt: &jwt.NumericDate{expirationTime},
 		},

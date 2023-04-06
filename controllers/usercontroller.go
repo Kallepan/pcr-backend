@@ -23,11 +23,13 @@ func RegisterUser(context *gin.Context) {
 		return
 	}
 
-	record := database.Instance.Create(&user)
-	if record.Error != nil {
-		context.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": record.Error.Error()})
+	query := "INSERT INTO users (email, firstname, lastname, username, password) VALUES ($1, $2, $3, $4, $5) RETURNING user_id"
+	err := database.Instance.QueryRow(query, user.Email, user.FirstName, user.LastName, user.Username, user.Password).Scan(&user.UserId)
+
+	if err != nil {
+		context.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	context.JSON(http.StatusCreated, gin.H{"userId": user.ID, "email": user.Email, "username": user.Username})
+	context.JSON(http.StatusCreated, gin.H{"userId": user.UserId, "email": user.Email, "username": user.Username})
 }

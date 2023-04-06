@@ -25,9 +25,11 @@ func GenerateJWTToken(context *gin.Context) {
 	}
 
 	// Check if user exists and password is correct
-	record := database.Instance.Where("username = ?", request.Username).First(&user)
-	if record.Error != nil {
-		context.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
+	query := "SELECT username, password, email, user_id FROM users WHERE username = $1"
+	err := database.Instance.QueryRow(query, request.Username).Scan(&user.Username, &user.Password, &user.Email, &user.UserId)
+
+	if err != nil {
+		context.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials1"})
 		return
 	}
 	credentialsError := user.CheckPassword(request.Password)
@@ -35,7 +37,7 @@ func GenerateJWTToken(context *gin.Context) {
 		context.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
 		return
 	}
-	tokenString, err := auth.GenerateJWTToken(user.Username, user.Email)
+	tokenString, err := auth.GenerateJWTToken(user.Username, user.Email, user.UserId)
 	if err != nil {
 		context.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "error generating token"})
 		return

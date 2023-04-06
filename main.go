@@ -13,7 +13,6 @@ import (
 func main() {
 	connectionString := utils.GetConnectionString()
 	database.Connect(connectionString)
-	database.Migrate()
 
 	router := initRouter()
 	router.Run(":8080")

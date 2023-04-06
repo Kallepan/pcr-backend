@@ -1,20 +1,24 @@
 package database
 
 import (
+	"database/sql"
 	"log"
-
-	"gitlab.com/kaka/pcr-backend/models"
-	"gorm.io/driver/postgres"
-	"gorm.io/gorm"
 
 	_ "github.com/lib/pq" // postgres driver
 )
 
-var Instance *gorm.DB
+var Instance *sql.DB
 var dbError error
 
 func Connect(connectionString string) {
-	Instance, dbError = gorm.Open(postgres.Open(connectionString), &gorm.Config{})
+	Instance, dbError = sql.Open("postgres", connectionString)
+
+	if dbError != nil {
+		log.Fatal("Can not connect to DB: ", dbError)
+		panic("Failed to connect to database!")
+	}
+
+	dbError = Instance.Ping()
 
 	if dbError != nil {
 		log.Fatal("Can not connect to DB: ", dbError)
@@ -22,8 +26,4 @@ func Connect(connectionString string) {
 	}
 
 	log.Println("Connected to database!")
-}
-
-func Migrate() {
-	Instance.AutoMigrate(&models.User{})
 }

@@ -37,26 +37,26 @@ func getDbInfo() DbInfo {
 	envSrcPort := "POSTGRES_PORT"
 	envSrcHost := "POSTGRES_HOST"
 
-	port, err := strconv.Atoi(GetValueFromEnv(envSrcPort))
+	port, err := strconv.Atoi(GetValueFromEnv(envSrcPort, "5432"))
 	if err != nil {
 		log.Fatal("Failed to convert port to int")
 	}
 
 	dbInfo := DbInfo{
-		User:     GetValueFromEnv(envSrcUser),
-		Password: GetValueFromEnv(envSrcPass),
-		DbName:   GetValueFromEnv(envSrcDbName),
-		Host:     GetValueFromEnv(envSrcHost),
+		User:     GetValueFromEnv(envSrcUser, "test"),
+		Password: GetValueFromEnv(envSrcPass, "test"),
+		DbName:   GetValueFromEnv(envSrcDbName, "test"),
+		Host:     GetValueFromEnv(envSrcHost, "localhost"),
 		Port:     port,
 	}
 
 	return dbInfo
 }
 
-func GetValueFromEnv(envSrc string) string {
+func GetValueFromEnv(envSrc string, defaultValue string) string {
 	envValue := os.Getenv(envSrc)
 	if envValue == "" {
-		log.Fatal("Failed to get env value")
+		return defaultValue
 	}
 
 	return envValue

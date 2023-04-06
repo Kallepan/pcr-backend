@@ -1,0 +1,16 @@
+version: '3.3'
+
+services:
+  db:
+    build: psql/.
+    container_name: postgres
+    restart: always
+    ports:
+      - 5432:5432
+    env_file:
+      - .dev.env
+    volumes:
+      - data:/var/lib/postgresql/data
+  
+volumes:
+  data:

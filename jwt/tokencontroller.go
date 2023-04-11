@@ -1,12 +1,11 @@
-package controllers
+package jwt
 
 import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"gitlab.com/kaka/pcr-backend/auth"
-	"gitlab.com/kaka/pcr-backend/database"
-	"gitlab.com/kaka/pcr-backend/models"
+	"gitlab.com/kaka/pcr-backend/common/database"
+	"gitlab.com/kaka/pcr-backend/common/models"
 )
 
 type TokenRequest struct {
@@ -14,7 +13,7 @@ type TokenRequest struct {
 	Password string `json:"password"`
 }
 
-func GenerateJWTToken(context *gin.Context) {
+func GenerateJWTTokenController(context *gin.Context) {
 	var request TokenRequest
 	var user models.User
 
@@ -37,7 +36,7 @@ func GenerateJWTToken(context *gin.Context) {
 		context.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
 		return
 	}
-	tokenString, err := auth.GenerateJWTToken(user.Username, user.Email, user.UserId)
+	tokenString, err := GenerateJWTToken(user.Username, user.Email, user.UserId)
 	if err != nil {
 		context.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "error generating token"})
 		return

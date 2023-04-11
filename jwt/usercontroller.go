@@ -1,11 +1,11 @@
-package controllers
+package jwt
 
 import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"gitlab.com/kaka/pcr-backend/database"
-	"gitlab.com/kaka/pcr-backend/models"
+	"gitlab.com/kaka/pcr-backend/common/database"
+	"gitlab.com/kaka/pcr-backend/common/models"
 )
 
 func RegisterUser(context *gin.Context) {

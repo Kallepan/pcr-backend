@@ -4,7 +4,7 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	"gitlab.com/kaka/pcr-backend/auth"
+	"gitlab.com/kaka/pcr-backend/jwt"
 )
 
 func AuthMiddleware() gin.HandlerFunc {
@@ -15,7 +15,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		err := auth.ValidateJWTToken(tokenString)
+		err := jwt.ValidateJWTToken(tokenString)
 		if err != nil {
 			context.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
 			return

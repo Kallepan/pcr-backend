@@ -4,9 +4,10 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"gitlab.com/kaka/pcr-backend/controllers"
-	"gitlab.com/kaka/pcr-backend/database"
-	"gitlab.com/kaka/pcr-backend/middlewares"
+	"gitlab.com/kaka/pcr-backend/common/controllers"
+	"gitlab.com/kaka/pcr-backend/common/database"
+	"gitlab.com/kaka/pcr-backend/common/middlewares"
+	"gitlab.com/kaka/pcr-backend/jwt"
 	"gitlab.com/kaka/pcr-backend/utils"
 )
 
@@ -25,8 +26,8 @@ func initRouter() *gin.Engine {
 
 	auth := router.Group("/api")
 	{
-		auth.POST("/token", controllers.GenerateJWTToken)
-		auth.POST("/register", controllers.RegisterUser)
+		auth.POST("/token", jwt.GenerateJWTTokenController)
+		auth.POST("/register", jwt.RegisterUser)
 	}
 
 	api := router.Group("/api/v1")

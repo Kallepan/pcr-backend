@@ -8,6 +8,7 @@ import (
 	"gitlab.com/kaka/pcr-backend/common/database"
 	"gitlab.com/kaka/pcr-backend/common/middlewares"
 	"gitlab.com/kaka/pcr-backend/jwt"
+	"gitlab.com/kaka/pcr-backend/samples"
 	"gitlab.com/kaka/pcr-backend/utils"
 )
 
@@ -22,6 +23,8 @@ func main() {
 func initRouter() *gin.Engine {
 	router := gin.Default()
 
+	router.Use(middlewares.ErrorHandler)
+
 	router.SetTrustedProxies(strings.Split(utils.GetValueFromEnv("TRUSTED_PROXIES", ","), ","))
 
 	auth := router.Group("/api")
@@ -31,7 +34,10 @@ func initRouter() *gin.Engine {
 	}
 
 	api := router.Group("/api/v1")
+	api.Use(middlewares.AuthMiddleware())
 	{
+		samples.RegisterRoutes(api.Group("/samples"))
+
 		secured := api.Group("/secured").Use(middlewares.AuthMiddleware())
 		{
 			secured.GET("/ping", controllers.Ping)

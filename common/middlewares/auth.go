@@ -8,18 +8,27 @@ import (
 )
 
 func AuthMiddleware() gin.HandlerFunc {
-	return func(context *gin.Context) {
-		tokenString := context.GetHeader("Authorization")
+	return func(ctx *gin.Context) {
+		tokenString := ctx.GetHeader("Authorization")
 		if tokenString == "" {
-			context.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing token"})
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "missing token"})
 			return
 		}
 
 		err := jwt.ValidateJWTToken(tokenString)
 		if err != nil {
-			context.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
 			return
 		}
-		context.Next()
+
+		// Set user uid if possible
+		user_id, err := jwt.GetUserIdFromToken(ctx.GetHeader("Authorization"))
+		if err != nil {
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})
+			return
+		}
+		ctx.Set("user_id", user_id)
+
+		ctx.Next()
 	}
 }

@@ -10,6 +10,7 @@ CREATE TABLE samples (
     tagesnummer VARCHAR(12) PRIMARY KEY NOT NULL,
     name VARCHAR(100) NOT NULL,
     created_at TIMESTAMP with time zone DEFAULT CURRENT_TIMESTAMP,
+
     created_by UUID NOT NULL
 );
 
@@ -31,7 +32,7 @@ ALTER TABLE analyses ADD CONSTRAINT unique_analyte UNIQUE (analyt, material, ass
 -- creates an index of certain tables to speed up queries
 CREATE INDEX idx_sampleanalyses_analysis_id ON sampleanalyses (analysis_id);
 CREATE INDEX idx_sampleanalyses_sample_id ON sampleanalyses (sample_id);
-CREATE INDEX idx_sampleanalyses_sample_id_like ON samples (sample_id varchar_pattern_ops);
+CREATE INDEX idx_samples_tagesnummer ON samples (tagesnummer);
 CREATE INDEX idx_samples_tagesnummer_like ON samples (tagesnummer varchar_pattern_ops);
 
 -- Create foreign key constraints

@@ -17,6 +17,34 @@ type JWTClaim struct {
 	jwt.RegisteredClaims
 }
 
+func GetUserIdFromToken(signedToken string) (userId string, err error) {
+	token, err := jwt.ParseWithClaims(
+		signedToken,
+		&JWTClaim{},
+		func(token *jwt.Token) (interface{}, error) {
+			return []byte(jwtKey), nil
+		},
+	)
+
+	if err != nil {
+		return "", err
+	}
+
+	claims, ok := token.Claims.(*JWTClaim)
+
+	if !ok {
+		err = errors.New("failed to parse claims")
+		return
+	}
+
+	if claims.ExpiresAt.Time.Before(time.Now()) {
+		err = errors.New("token expired")
+		return
+	}
+
+	return claims.UserId, nil
+}
+
 func GenerateJWTToken(username string, email string, userId string) (tokenString string, err error) {
 	expirationTime := time.Now().Add(12 * time.Hour)
 

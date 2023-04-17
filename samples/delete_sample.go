@@ -1,6 +1,7 @@
 package samples
 
 import (
+	"database/sql"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -14,8 +15,14 @@ func DeleteSample(ctx *gin.Context) {
 
 	_, err := database.Instance.Exec(query, tagesnummer)
 
-	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err)
+	switch err {
+	case nil:
+		break
+	case sql.ErrNoRows:
+		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "sample not found"})
+		return
+	default:
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 

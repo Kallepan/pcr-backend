@@ -35,7 +35,7 @@ func UpdateSample(ctx *gin.Context) {
 		ctx.JSON(http.StatusOK, &sample)
 		return
 	default:
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, err)
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 }

@@ -27,7 +27,7 @@ func GenerateJWTTokenController(context *gin.Context) {
 	err := database.Instance.QueryRow(query, request.Username).Scan(&user.Username, &user.Password, &user.Email, &user.UserId)
 
 	if err != nil {
-		context.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials1"})
+		context.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
 		return
 	}
 	credentialsError := user.CheckPassword(request.Password)

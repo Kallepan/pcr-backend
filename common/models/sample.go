@@ -1,22 +1,15 @@
 package models
 
 type SampleAnalysis struct {
-	SampleID   string `json:"sample_id"`
-	AnalysisID string `json:"analysis_id"`
-
 	Run       string `json:"run"`
 	Device    string `json:"device"`
-	Complete  bool   `json:"complete"`
+	Completed bool   `json:"completed"`
+
 	CreatedBy string `json:"created_by"`
 	CreatedAt string `json:"created_at"`
 
-	Analyt   string `json:"analyt"`
-	Material string `json:"material"`
-	Assay    string `json:"assay"`
-	ReadyMix bool   `json:"ready_mix"`
-
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
+	Sample   Sample   `json:"sample"`
+	Analysis Analysis `json:"analysis"`
 }
 
 type Sample struct {
@@ -26,8 +19,6 @@ type Sample struct {
 
 	CreatedAt string `json:"created_at"`
 	CreatedBy string `json:"created_by"`
-
-	AssociatedAnalyses []SampleAnalysis `json:"associated_analyses"`
 }
 
 type Analysis struct {

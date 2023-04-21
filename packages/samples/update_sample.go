@@ -32,7 +32,7 @@ func UpdateSample(ctx *gin.Context) {
 
 	query := `
 		WITH updated_sample as (UPDATE samples SET firstname = $1, lastname = $2 WHERE sample_id = $3 returning *) 
-		SELECT sample_id, updated_sample.firstname, updated_sample.lastname, users.username 
+		SELECT sample_id, updated_sample.firstname, updated_sample.lastname, updated_sample.created_at, users.username 
 		FROM updated_sample 
 		LEFT JOIN users ON updated_sample.created_by = users.user_id;`
 
@@ -40,7 +40,7 @@ func UpdateSample(ctx *gin.Context) {
 
 	var sample models.Sample
 
-	switch err := result.Scan(&sample.SampleID, &sample.FirstName, &sample.LastName, &sample.CreatedBy); err {
+	switch err := result.Scan(&sample.SampleID, &sample.FirstName, &sample.LastName, &sample.CreatedAt, &sample.CreatedBy); err {
 	case nil:
 		break
 	default:

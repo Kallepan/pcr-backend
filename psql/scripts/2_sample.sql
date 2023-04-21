@@ -24,7 +24,7 @@ CREATE TABLE sampleanalyses (
 
     run VARCHAR(20) NOT NULL,
     device VARCHAR(20) NOT NULL,
-    complete BOOLEAN NOT NULL DEFAULT FALSE,
+    completed BOOLEAN NOT NULL DEFAULT FALSE,
     
     created_by UUID REFERENCES users(user_id) ON UPDATE CASCADE ON DELETE SET NULL,
     created_at TIMESTAMP with time zone DEFAULT CURRENT_TIMESTAMP,

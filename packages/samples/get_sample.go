@@ -9,43 +9,6 @@ import (
 	"gitlab.com/kaka/pcr-backend/common/models"
 )
 
-func GetAssociatedAnalysis(sample_id string) []models.SampleAnalysis {
-	// Get all analyses associated with a sample
-	query := `
-		SELECT analyses.analyt,analyses.assay,analyses.material,analyses.ready_mix,sampleanalyses.run,sampleanalyses.device,sampleanalyses.created_at,users.username
-		FROM sampleanalyses
-		LEFT JOIN analyses ON sampleanalyses.analysis_id = analyses.analysis_id
-		LEFT JOIN users ON sampleanalyses.created_by = users.user_id
-		WHERE sampleanalyses.sample_id = $1
-		ORDER BY sampleanalyses.created_at DESC;
-		`
-
-	rows, err := database.Instance.Query(query, sample_id)
-
-	switch err {
-	case nil:
-		break
-	default:
-		return nil
-	}
-
-	var sampleanalyses []models.SampleAnalysis
-	for rows.Next() {
-		var sampleanalysis models.SampleAnalysis
-
-		if err := rows.Scan(&sampleanalysis.Analyt, &sampleanalysis.Assay, &sampleanalysis.Material, &sampleanalysis.ReadyMix, &sampleanalysis.Run, &sampleanalysis.Device, &sampleanalysis.CreatedAt, &sampleanalysis.CreatedBy); err != nil {
-			break
-		}
-		sampleanalyses = append(sampleanalyses, sampleanalysis)
-	}
-
-	if err = rows.Err(); err != nil {
-		return nil
-	}
-
-	return sampleanalyses
-}
-
 func GetSample(ctx *gin.Context) {
 	sample_id := ctx.Param("sample_id")
 
@@ -70,8 +33,5 @@ func GetSample(ctx *gin.Context) {
 		return
 	}
 
-	sampleAnalyses := GetAssociatedAnalysis(sample_id)
-
-	sample.AssociatedAnalyses = sampleAnalyses
 	ctx.JSON(http.StatusOK, sample)
 }

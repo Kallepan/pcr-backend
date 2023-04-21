@@ -4,6 +4,7 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
+	"gitlab.com/kaka/pcr-backend/analyses"
 	"gitlab.com/kaka/pcr-backend/common/controllers"
 	"gitlab.com/kaka/pcr-backend/common/database"
 	"gitlab.com/kaka/pcr-backend/common/middlewares"
@@ -37,11 +38,8 @@ func initRouter() *gin.Engine {
 	api.Use(middlewares.AuthMiddleware())
 	{
 		samples.RegisterRoutes(api.Group("/samples"))
-
-		secured := api.Group("/secured").Use(middlewares.AuthMiddleware())
-		{
-			secured.GET("/ping", controllers.Ping)
-		}
+		analyses.RegisterRoutes(api.Group("/analyses"))
+		api.GET("/ping", controllers.Ping)
 	}
 
 	return router

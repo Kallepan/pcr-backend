@@ -4,12 +4,12 @@ import (
 	"strings"
 
 	"github.com/gin-gonic/gin"
-	"gitlab.com/kaka/pcr-backend/analyses"
 	"gitlab.com/kaka/pcr-backend/common/controllers"
 	"gitlab.com/kaka/pcr-backend/common/database"
 	"gitlab.com/kaka/pcr-backend/common/middlewares"
 	"gitlab.com/kaka/pcr-backend/jwt"
-	"gitlab.com/kaka/pcr-backend/samples"
+	"gitlab.com/kaka/pcr-backend/packages/analyses"
+	"gitlab.com/kaka/pcr-backend/packages/samples"
 	"gitlab.com/kaka/pcr-backend/utils"
 )
 

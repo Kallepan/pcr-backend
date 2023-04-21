@@ -19,7 +19,6 @@ func GenerateJWTTokenController(context *gin.Context) {
 
 	if err := context.ShouldBindJSON(&request); err != nil {
 		context.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
-
 		return
 	}
 

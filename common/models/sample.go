@@ -26,8 +26,6 @@ type Sample struct {
 }
 
 type Analysis struct {
-	AnalysisId string `json:"analysis_id"`
-
 	// These three fields define the Analysis
 	// Guaranteed by unique relationship
 	Analyt   string `json:"analyt"`

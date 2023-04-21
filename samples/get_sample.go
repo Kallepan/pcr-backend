@@ -63,10 +63,12 @@ func GetSample(ctx *gin.Context) {
 	switch err := row.Scan(&sample.Tagesnummer, &sample.Name, &sample.CreatedAt, &sample.CreatedBy); err {
 	case sql.ErrNoRows:
 		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "sample not found"})
+		return
 	case nil:
 		break
 	default:
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	sampleAnalyses := GetAssociatedAnalysis(tagesnummer)

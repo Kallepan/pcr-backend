@@ -13,7 +13,7 @@ func GetSamples(ctx *gin.Context) {
 
 	query := `
 		SELECT tagesnummer,name,created_at,users.username 
-		FROM samples 
+		FROM samples
 		LEFT JOIN users ON samples.created_by = users.user_id
 		ORDER BY $1 DESC LIMIT $2
 		`
@@ -21,6 +21,7 @@ func GetSamples(ctx *gin.Context) {
 
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	for rows.Next() {
@@ -34,6 +35,7 @@ func GetSamples(ctx *gin.Context) {
 
 	if err = rows.Err(); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
 	}
 
 	ctx.JSON(http.StatusOK, &samples)

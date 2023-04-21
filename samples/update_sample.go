@@ -22,7 +22,12 @@ func UpdateSample(ctx *gin.Context) {
 		return
 	}
 
-	query := `WITH updated_sample as (UPDATE samples SET name = $1 WHERE tagesnummer = $2 returning *) SELECT tagesnummer, name, users.username FROM updated_sample LEFT JOIN users ON updated_sample.created_by = users.user_id;`
+	query := `
+		WITH updated_sample as (UPDATE samples SET name = $1 WHERE tagesnummer = $2 returning *) 
+		SELECT tagesnummer, name, users.username 
+		FROM updated_sample 
+		LEFT JOIN users ON updated_sample.created_by = users.user_id;`
+
 	result := database.Instance.QueryRow(query, body.Name, tagesnummer)
 
 	var sample models.Sample

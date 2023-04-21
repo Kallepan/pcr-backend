@@ -1,7 +1,7 @@
 package samples
 
 import (
-	"database/sql"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -10,11 +10,12 @@ import (
 )
 
 type UpdateSampleRequest struct {
-	Name string `json:"name" binding:"required"`
+	FirstName string `json:"firstname" binding:"required"`
+	LastName  string `json:"lastname" binding:"required"`
 }
 
 func UpdateSample(ctx *gin.Context) {
-	tagesnummer := ctx.Param("tagesnummer")
+	sample_id := ctx.Param("sample_id")
 	body := UpdateSampleRequest{}
 
 	if err := ctx.ShouldBindJSON(&body); err != nil {
@@ -22,25 +23,29 @@ func UpdateSample(ctx *gin.Context) {
 		return
 	}
 
+	// Check if sample exists
+	if !SampleExists(sample_id) {
+		error_message := fmt.Sprintf("sample %s does not exist", sample_id)
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": error_message})
+		return
+	}
+
 	query := `
-		WITH updated_sample as (UPDATE samples SET name = $1 WHERE tagesnummer = $2 returning *) 
-		SELECT tagesnummer, name, users.username 
+		WITH updated_sample as (UPDATE samples SET firstname = $1, lastname = $2 WHERE sample_id = $3 returning *) 
+		SELECT sample_id, updated_sample.firstname, updated_sample.lastname, users.username 
 		FROM updated_sample 
 		LEFT JOIN users ON updated_sample.created_by = users.user_id;`
 
-	result := database.Instance.QueryRow(query, body.Name, tagesnummer)
+	result := database.Instance.QueryRow(query, body.FirstName, body.LastName, sample_id)
 
 	var sample models.Sample
 
-	switch err := result.Scan(&sample.Tagesnummer, &sample.Name, &sample.CreatedBy); err {
-	case sql.ErrNoRows:
-		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "sample not found"})
-		return
+	switch err := result.Scan(&sample.SampleID, &sample.FirstName, &sample.LastName, &sample.CreatedBy); err {
 	case nil:
-		ctx.JSON(http.StatusOK, &sample)
-		return
+		break
 	default:
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
+	ctx.JSON(http.StatusOK, &sample)
 }

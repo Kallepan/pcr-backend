@@ -2,6 +2,7 @@ package samples
 
 import (
 	"database/sql"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -9,22 +10,23 @@ import (
 )
 
 func DeleteSample(ctx *gin.Context) {
-	tagesnummer := ctx.Param("tagesnummer")
+	sample_id := ctx.Param("sample_id")
 
-	query := `DELETE FROM samples WHERE tagesnummer = $1`
+	query := `DELETE FROM samples WHERE sample_id = $1`
 
-	_, err := database.Instance.Exec(query, tagesnummer)
+	_, err := database.Instance.Exec(query, sample_id)
 
 	switch err {
 	case nil:
 		break
 	case sql.ErrNoRows:
-		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "sample not found"})
+		error_message := fmt.Sprintf("sample with id %s not found", sample_id)
+		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": error_message})
 		return
 	default:
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
 		return
 	}
 
-	ctx.Status(http.StatusNoContent)
+	ctx.Status(http.StatusOK)
 }

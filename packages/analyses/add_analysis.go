@@ -1,7 +1,6 @@
 package analyses
 
 import (
-	"database/sql"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -14,19 +13,6 @@ type AddAnalysisRequest struct {
 	Material string `json:"material"`
 	Assay    string `json:"assay"`
 	ReadyMix bool   `json:"ready_mix"`
-}
-
-func AnalysisExists(analysis models.Analysis) bool {
-	query := `
-		SELECT EXISTS(
-		SELECT * 
-		FROM analyses 
-		WHERE analyt = $1 AND material = $2 AND assay = $3)`
-
-	var exists bool
-	err := database.Instance.QueryRow(query, analysis.Analyt, analysis.Material, analysis.Assay).Scan(&exists)
-
-	return exists && err != sql.ErrNoRows
 }
 
 func AddAnalysis(ctx *gin.Context) {
@@ -51,8 +37,11 @@ func AddAnalysis(ctx *gin.Context) {
 	}
 
 	// Insert analysis
-	query := "INSERT INTO analyses (analyt,material,assay,ready_mix) VALUES ($1,$2,$3,$4) RETURNING analyt,material,assay,ready_mix"
-	err := database.Instance.QueryRow(query, analysis.Analyt, analysis.Material, analysis.Assay, analysis.ReadyMix).Scan(&analysis.Analyt, &analysis.Material, &analysis.Assay, &analysis.ReadyMix)
+	query := `
+			INSERT INTO analyses (analyt,material,assay,ready_mix) 
+			VALUES ($1,$2,$3,$4) 
+			RETURNING analysis_id;`
+	err := database.Instance.QueryRow(query, analysis.Analyt, analysis.Material, analysis.Assay, analysis.ReadyMix).Scan(&analysis.AnalysisID)
 
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})

@@ -1,33 +1,38 @@
 package models
 
 type SampleAnalysis struct {
-	ID        string `json:"id"`
+	SampleID   string `json:"sample_id"`
+	AnalysisID string `json:"analysis_id"`
+
 	Run       string `json:"run"`
 	Device    string `json:"device"`
+	Complete  bool   `json:"complete"`
 	CreatedBy string `json:"created_by"`
 	CreatedAt string `json:"created_at"`
 
-	// These three fields define the Analysis
-	// Guaranteed by unique relationship
 	Analyt   string `json:"analyt"`
 	Material string `json:"material"`
 	Assay    string `json:"assay"`
 	ReadyMix bool   `json:"ready_mix"`
+
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
 }
 
 type Sample struct {
-	Tagesnummer string `json:"tagesnummer"`
-	Name        string `json:"name"`
-
-	AssociatedAnalyses []SampleAnalysis `json:"associated_analyses"`
+	SampleID  string `json:"sample_id"`
+	FirstName string `json:"first_name"`
+	LastName  string `json:"last_name"`
 
 	CreatedAt string `json:"created_at"`
 	CreatedBy string `json:"created_by"`
+
+	AssociatedAnalyses []SampleAnalysis `json:"associated_analyses"`
 }
 
 type Analysis struct {
-	// These three fields define the Analysis
-	// Guaranteed by unique relationship
+	AnalysisID string `json:"analysis_id"`
+
 	Analyt   string `json:"analyt"`
 	Material string `json:"material"`
 	Assay    string `json:"assay"`

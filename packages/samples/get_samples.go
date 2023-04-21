@@ -12,11 +12,13 @@ func GetSamples(ctx *gin.Context) {
 	var samples []models.Sample
 
 	query := `
-		SELECT tagesnummer,name,created_at,users.username 
+		SELECT sample_id,samples.firstname,samples.lastname,created_at,users.username 
 		FROM samples
 		LEFT JOIN users ON samples.created_by = users.user_id
 		ORDER BY $1 DESC LIMIT $2
 		`
+
+	// TODO: Add pagination and filtering by params
 	rows, err := database.Instance.Query(query, "created_at", 100)
 
 	if err != nil {
@@ -27,7 +29,7 @@ func GetSamples(ctx *gin.Context) {
 	for rows.Next() {
 		var sample models.Sample
 
-		if err := rows.Scan(&sample.Tagesnummer, &sample.Name, &sample.CreatedAt, &sample.CreatedBy); err != nil {
+		if err := rows.Scan(&sample.SampleID, &sample.FirstName, &sample.LastName, &sample.CreatedAt, &sample.CreatedBy); err != nil {
 			break
 		}
 		samples = append(samples, sample)

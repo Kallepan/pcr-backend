@@ -9,6 +9,7 @@ import (
 	"gitlab.com/kaka/pcr-backend/common/middlewares"
 	"gitlab.com/kaka/pcr-backend/jwt"
 	"gitlab.com/kaka/pcr-backend/packages/analyses"
+	sampleanalyses "gitlab.com/kaka/pcr-backend/packages/sample_analyses"
 	"gitlab.com/kaka/pcr-backend/packages/samples"
 	"gitlab.com/kaka/pcr-backend/utils"
 )
@@ -39,6 +40,7 @@ func initRouter() *gin.Engine {
 	{
 		samples.RegisterRoutes(api.Group("/samples"))
 		analyses.RegisterRoutes(api.Group("/analyses"))
+		sampleanalyses.RegisterRoutes(api.Group("/sampleanalyses"))
 		api.GET("/ping", controllers.Ping)
 	}
 

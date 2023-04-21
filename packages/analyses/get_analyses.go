@@ -12,10 +12,11 @@ func GetAllAnalyses(ctx *gin.Context) {
 	var analyses []models.Analysis
 
 	// Get all analyses
-	query := `
-		SELECT analyt,assay,material,ready_mix
+	query :=
+		`
+		SELECT analysis_id,analyt,assay,material,ready_mix
 		FROM analyses
-		ORDER BY id DESC;
+		ORDER BY analysis_id ASC;
 		`
 
 	rows, err := database.Instance.Query(query)
@@ -27,7 +28,7 @@ func GetAllAnalyses(ctx *gin.Context) {
 	for rows.Next() {
 		var analysis models.Analysis
 
-		if err := rows.Scan(&analysis.Analyt, &analysis.Assay, &analysis.Material, &analysis.ReadyMix); err != nil {
+		if err := rows.Scan(&analysis.AnalysisID, &analysis.Analyt, &analysis.Assay, &analysis.Material, &analysis.ReadyMix); err != nil {
 			break
 		}
 		analyses = append(analyses, analysis)

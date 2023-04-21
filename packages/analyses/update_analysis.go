@@ -13,9 +13,7 @@ type UpdateAnalysisRequest struct {
 }
 
 func UpdateAnalysis(ctx *gin.Context) {
-	analyt := ctx.Param("analyt")
-	material := ctx.Param("material")
-	assay := ctx.Param("assay")
+	analysis_id := ctx.Param("analysis_id")
 
 	var request UpdateAnalysisRequest
 
@@ -24,8 +22,8 @@ func UpdateAnalysis(ctx *gin.Context) {
 		return
 	}
 
-	query := "UPDATE analyses SET ready_mix = $1 WHERE analyt = $2 AND material = $3 AND assay = $4"
-	_, err := database.Instance.Exec(query, request.ReadyMix, analyt, material, assay)
+	query := "UPDATE analyses SET ready_mix = $1 WHERE analysis_id = $2"
+	_, err := database.Instance.Exec(query, request.ReadyMix, analysis_id)
 
 	switch err {
 	case nil:

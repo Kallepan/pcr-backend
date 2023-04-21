@@ -5,6 +5,6 @@ import "github.com/gin-gonic/gin"
 func RegisterRoutes(router *gin.RouterGroup) {
 	router.GET("", GetAllAnalyses)
 	router.POST("", AddAnalysis)
-	router.PUT("/:analyt/:material/:assay", UpdateAnalysis)
-	router.DELETE("/:analyt/:material/:assay", DeleteAnalysis)
+	router.PUT("/:analysis_id", UpdateAnalysis)
+	router.DELETE("/:analysis_id", DeleteAnalysis)
 }

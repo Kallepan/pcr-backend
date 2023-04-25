@@ -25,8 +25,9 @@ func main() {
 func initRouter() *gin.Engine {
 	router := gin.Default()
 
+	router.NoRoute(middlewares.NoRouteHandler)
 	router.Use(middlewares.ErrorHandler)
-
+	router.Use(middlewares.CORSMiddleware())
 	router.SetTrustedProxies(strings.Split(utils.GetValueFromEnv("TRUSTED_PROXIES", ","), ","))
 
 	auth := router.Group("/api")
@@ -38,7 +39,7 @@ func initRouter() *gin.Engine {
 	v1 := router.Group("/api/v1")
 	{
 		v1.GET("/samples", samples.GetSamples)
-		v1.GET("/sampleanalyses", sampleanalyses.GetSampleAnalyses)
+		v1.GET("/samplesanalyses", sampleanalyses.GetSampleAnalyses)
 		v1.GET("/analyses", analyses.GetAllAnalyses)
 		v1.GET("/ping", controllers.Ping)
 	}

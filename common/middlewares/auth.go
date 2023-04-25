@@ -21,7 +21,7 @@ func AuthMiddleware() gin.HandlerFunc {
 			return
 		}
 
-		// Set user uid if possible
+		// Set user_id if possible
 		user_id, err := jwt.GetUserIdFromToken(ctx.GetHeader("Authorization"))
 		if err != nil {
 			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid token"})

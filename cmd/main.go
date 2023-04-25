@@ -35,13 +35,20 @@ func initRouter() *gin.Engine {
 		auth.POST("/register", jwt.RegisterUser)
 	}
 
-	api := router.Group("/api/v1")
-	api.Use(middlewares.AuthMiddleware())
+	v1 := router.Group("/api/v1")
 	{
-		samples.RegisterRoutes(api.Group("/samples"))
-		analyses.RegisterRoutes(api.Group("/analyses"))
-		sampleanalyses.RegisterRoutes(api.Group("/sampleanalyses"))
-		api.GET("/ping", controllers.Ping)
+		v1.GET("/samples", samples.GetSamples)
+		v1.GET("/sampleanalyses", sampleanalyses.GetSampleAnalyses)
+		v1.GET("/analyses", analyses.GetAllAnalyses)
+		v1.GET("/ping", controllers.Ping)
+	}
+
+	secured := router.Group("/api/v1")
+	secured.Use(middlewares.AuthMiddleware())
+	{
+		samples.RegisterRoutes(secured.Group("/samples"))
+		analyses.RegisterRoutes(secured.Group("/analyses"))
+		sampleanalyses.RegisterRoutes(secured.Group("/sampleanalyses"))
 	}
 
 	return router

@@ -20,15 +20,15 @@ func AnalysisExists(analysis models.Analysis) bool {
 	return exists && err != sql.ErrNoRows
 }
 
-func AnalysisExistsByID(analysis_id string) bool {
+func AnalysisExistsByID(analysis_id string) (models.Analysis, error) {
+	var analysis models.Analysis
+
 	query := `
-		SELECT EXISTS(
-		SELECT * 
+		SELECT analysis_id,analyt,assay,material,ready_mix 
 		FROM analyses 
-		WHERE analysis_id = $1)`
+		WHERE analysis_id = $1`
 
-	var exists bool
-	err := database.Instance.QueryRow(query, analysis_id).Scan(&exists)
+	err := database.Instance.QueryRow(query, analysis_id).Scan(&analysis.AnalysisID, &analysis.Analyt, &analysis.Assay, &analysis.Material, &analysis.ReadyMix)
 
-	return exists && err != sql.ErrNoRows
+	return analysis, err
 }

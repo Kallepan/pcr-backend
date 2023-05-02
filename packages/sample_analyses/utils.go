@@ -1,4 +1,4 @@
-package sampleanalyses
+package samplesanalyses
 
 import (
 	"database/sql"
@@ -10,7 +10,7 @@ func SampleAnalysisExists(sample_id string, analysis_id string) bool {
 	query := `
 		SELECT EXISTS(
 			SELECT sample_id
-			FROM sampleanalyses
+			FROM samplesanalyses
 			WHERE sample_id = $1 AND analysis_id = $2
 		)`
 	var exists bool

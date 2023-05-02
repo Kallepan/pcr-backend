@@ -1,4 +1,4 @@
-package sampleanalyses
+package samplesanalyses
 
 import "github.com/gin-gonic/gin"
 

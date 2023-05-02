@@ -1,4 +1,4 @@
-package sampleanalyses
+package samplesanalyses
 
 import (
 	"database/sql"
@@ -30,7 +30,7 @@ func UpdateSampleAnalysis(ctx *gin.Context) {
 	}
 
 	// Run query
-	query := `UPDATE sampleanalyses SET completed = $1 WHERE sample_id = $2 AND analysis_id = $3`
+	query := `UPDATE samplesanalyses SET completed = $1 WHERE sample_id = $2 AND analysis_id = $3`
 
 	_, err := database.Instance.Exec(query, body.Completed, sample_id, analysis_id)
 

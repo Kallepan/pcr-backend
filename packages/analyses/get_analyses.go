@@ -8,6 +8,27 @@ import (
 	"gitlab.com/kaka/pcr-backend/common/models"
 )
 
+func GetAnalysis(ctx *gin.Context) {
+	var anlysis models.Analysis
+
+	analysis_id := ctx.Param("analysis_id")
+
+	query :=
+		`
+		SELECT analysis_id,analyt,assay,material,ready_mix
+		FROM analyses
+		WHERE analysis_id = $1;
+		`
+	err := database.Instance.QueryRow(query, analysis_id).Scan(&anlysis.AnalysisID, &anlysis.Analyt, &anlysis.Assay, &anlysis.Material, &anlysis.ReadyMix)
+
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		return
+	}
+
+	ctx.JSON(http.StatusOK, &anlysis)
+}
+
 func GetAllAnalyses(ctx *gin.Context) {
 	var analyses []models.Analysis
 

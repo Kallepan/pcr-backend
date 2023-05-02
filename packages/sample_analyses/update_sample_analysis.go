@@ -19,13 +19,13 @@ func UpdateSampleAnalysis(ctx *gin.Context) {
 	body := UpdateSampleAnalysisRequest{}
 
 	if err := ctx.ShouldBindJSON(&body); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
 	// Check if sample_analysis exists
 	if !SampleAnalysisExists(sample_id, analysis_id) {
-		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "sample analysis not found"})
+		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": "sample analysis not found"})
 		return
 	}
 
@@ -38,10 +38,10 @@ func UpdateSampleAnalysis(ctx *gin.Context) {
 	case nil:
 		break
 	case sql.ErrNoRows:
-		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "sample analysis not found"})
+		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": "sample analysis not found"})
 		return
 	default:
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 

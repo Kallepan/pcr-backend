@@ -18,7 +18,7 @@ func UpdateAnalysis(ctx *gin.Context) {
 	var request UpdateAnalysisRequest
 
 	if err := ctx.ShouldBindJSON(&request); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
@@ -29,10 +29,10 @@ func UpdateAnalysis(ctx *gin.Context) {
 	case nil:
 		break
 	case sql.ErrNoRows:
-		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": "analysis not found"})
+		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": "analysis not found"})
 		return
 	default:
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 

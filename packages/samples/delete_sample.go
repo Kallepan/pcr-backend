@@ -21,10 +21,10 @@ func DeleteSample(ctx *gin.Context) {
 		break
 	case sql.ErrNoRows:
 		error_message := fmt.Sprintf("sample with id %s not found", sample_id)
-		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"error": error_message})
+		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": error_message})
 		return
 	default:
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 

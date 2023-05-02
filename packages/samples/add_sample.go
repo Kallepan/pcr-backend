@@ -20,7 +20,7 @@ func AddSample(ctx *gin.Context) {
 
 	var request AddSampleRequest
 	if err := ctx.ShouldBindJSON(&request); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
@@ -33,7 +33,7 @@ func AddSample(ctx *gin.Context) {
 	// Check if sample already exists
 	if SampleExists(sample.SampleID) {
 		error_message := fmt.Sprintf("sample %s already exists", sample.SampleID)
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": error_message})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": error_message})
 		return
 	}
 
@@ -49,7 +49,7 @@ func AddSample(ctx *gin.Context) {
 	err := database.Instance.QueryRow(query, sample.SampleID, sample.FirstName, sample.LastName, user_id).Scan(&sample.CreatedAt, &sample.CreatedBy)
 
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 

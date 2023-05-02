@@ -18,7 +18,7 @@ func GenerateJWTTokenController(context *gin.Context) {
 	var user models.User
 
 	if err := context.ShouldBindJSON(&request); err != nil {
-		context.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		context.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
@@ -27,17 +27,17 @@ func GenerateJWTTokenController(context *gin.Context) {
 	err := database.Instance.QueryRow(query, request.Username).Scan(&user.Username, &user.Password, &user.Email, &user.UserId)
 
 	if err != nil {
-		context.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
+		context.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "invalid credentials"})
 		return
 	}
 	credentialsError := user.CheckPassword(request.Password)
 	if credentialsError != nil {
-		context.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "invalid credentials"})
+		context.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"message": "invalid credentials"})
 		return
 	}
 	tokenString, err := GenerateJWTToken(user.Username, user.Email, user.UserId)
 	if err != nil {
-		context.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": "error generating token"})
+		context.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": "error generating token"})
 		return
 	}
 

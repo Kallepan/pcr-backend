@@ -17,6 +17,8 @@ type Sample struct {
 	FirstName string `json:"first_name"`
 	LastName  string `json:"last_name"`
 
+	Sputalysed bool `json:"sputalysed"`
+
 	CreatedAt string `json:"created_at"`
 	CreatedBy string `json:"created_by"`
 }

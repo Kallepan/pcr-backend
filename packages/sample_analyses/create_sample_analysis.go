@@ -24,7 +24,7 @@ func AddAnalysisToSample(ctx *gin.Context) {
 	body := AddAnalysisToSampleRequest{}
 
 	if err := ctx.ShouldBindJSON(&body); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
@@ -32,21 +32,21 @@ func AddAnalysisToSample(ctx *gin.Context) {
 	analysis, anlysis_err := analyses.AnalysisExistsByID(body.AnalysisID)
 	if anlysis_err != nil {
 		error_message := fmt.Sprintf("analysis %s does not exist", body.AnalysisID)
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": error_message})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": error_message})
 		return
 	}
 
 	// Check if sample exists
 	if !samples.SampleExists(body.SampleID) {
 		error_message := fmt.Sprintf("sample %s does not exist", body.SampleID)
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": error_message})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": error_message})
 		return
 	}
 
 	// Check if sample analysis already exists
 	if SampleAnalysisExists(body.SampleID, body.AnalysisID) {
 		error_message := fmt.Sprintf("Probe mit Analyse %s %s-%s-%s existiert bereits", body.SampleID, analysis.Analyt, analysis.Material, analysis.Assay)
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": error_message})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": error_message})
 		return
 	}
 
@@ -63,17 +63,17 @@ func AddAnalysisToSample(ctx *gin.Context) {
 	// Run query
 	query := `
 		WITH sample_query AS (
-		SELECT samples.sample_id, samples.firstname, samples.lastname, samples.created_at, samples.created_by, users.username AS created_by_username
+		SELECT samples.sample_id, samples.firstname, samples.lastname, samples.created_at, samples.created_by, samples.sputalysed, users.username AS sample_created_by
 		FROM samples
 		LEFT JOIN users ON samples.created_by = users.user_id
 		WHERE samples.sample_id = $1
-		GROUP BY samples.sample_id, samples.firstname, samples.lastname, samples.created_at, users.username
+		GROUP BY samples.sample_id, samples.firstname, samples.lastname, samples.created_at, samples.sputalysed, users.username
 		), new_sample_analysis AS ( 
 			INSERT INTO samplesanalyses (sample_id, analysis_id, run, device, created_by) 
 			VALUES ($1, $2, $3, $4, $5)
 			RETURNING sample_id, created_at, created_by, analysis_id
 		)
-			SELECT new_sample_analysis.created_at, users.username, analyses.analyt, analyses.material, analyses.assay, analyses.ready_mix, sample_query.firstname, sample_query.lastname, sample_query.created_at, sample_query.created_by_username
+			SELECT new_sample_analysis.created_at, users.username, analyses.analyt, analyses.material, analyses.assay, analyses.ready_mix, sample_query.firstname, sample_query.lastname, sample_query.sputalysed, sample_query.created_at, sample_query.sample_created_by
 			FROM new_sample_analysis
 			LEFT JOIN sample_query ON new_sample_analysis.sample_id = sample_query.sample_id
 			LEFT JOIN users ON new_sample_analysis.created_by = users.user_id
@@ -94,11 +94,12 @@ func AddAnalysisToSample(ctx *gin.Context) {
 		&sample_analysis.Analysis.ReadyMix,
 		&sample_analysis.Sample.FirstName,
 		&sample_analysis.Sample.LastName,
+		&sample_analysis.Sample.Sputalysed,
 		&sample_analysis.Sample.CreatedAt,
 		&sample_analysis.Sample.CreatedBy)
 
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 

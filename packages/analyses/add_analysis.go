@@ -19,7 +19,7 @@ func AddAnalysis(ctx *gin.Context) {
 	var request AddAnalysisRequest
 
 	if err := ctx.ShouldBindJSON(&request); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 
@@ -32,7 +32,7 @@ func AddAnalysis(ctx *gin.Context) {
 
 	// Check if analysis already exists
 	if AnalysisExists(analysis) {
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"error": "analysis already exists"})
+		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "analysis already exists"})
 		return
 	}
 
@@ -44,7 +44,7 @@ func AddAnalysis(ctx *gin.Context) {
 	err := database.Instance.QueryRow(query, analysis.Analyt, analysis.Material, analysis.Assay, analysis.ReadyMix).Scan(&analysis.AnalysisID)
 
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 

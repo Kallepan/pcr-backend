@@ -31,7 +31,7 @@ func GetSamplesAnalyses(ctx *gin.Context) {
 	rows, err := database.Instance.Query(query, "samplesanalyses.created_at", 100)
 
 	if err != nil {
-		ctx.AbortWithStatusJSON(500, gin.H{"error": err.Error()})
+		ctx.AbortWithStatusJSON(500, gin.H{"message": err.Error()})
 		return
 	}
 
@@ -45,7 +45,7 @@ func GetSamplesAnalyses(ctx *gin.Context) {
 			&analysis.AnalysisID, &analysis.Analyt, &analysis.Material, &analysis.Assay, &analysis.ReadyMix,
 			&sampleAnalysis.Run, &sampleAnalysis.Device, &sampleAnalysis.Completed, &sampleAnalysis.CreatedAt, &sampleAnalysis.CreatedBy); err != nil {
 
-			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		}
 
 		sampleAnalysis.Sample = sample
@@ -54,7 +54,7 @@ func GetSamplesAnalyses(ctx *gin.Context) {
 	}
 
 	if err = rows.Err(); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 

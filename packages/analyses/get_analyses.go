@@ -22,7 +22,7 @@ func GetAnalysis(ctx *gin.Context) {
 	err := database.Instance.QueryRow(query, analysis_id).Scan(&anlysis.AnalysisID, &anlysis.Analyt, &anlysis.Assay, &anlysis.Material, &anlysis.ReadyMix)
 
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 
@@ -42,7 +42,7 @@ func GetAllAnalyses(ctx *gin.Context) {
 
 	rows, err := database.Instance.Query(query)
 	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 
@@ -56,7 +56,7 @@ func GetAllAnalyses(ctx *gin.Context) {
 	}
 
 	if err = rows.Err(); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"error": err.Error()})
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 

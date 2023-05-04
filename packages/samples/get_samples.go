@@ -15,7 +15,8 @@ func GetSamples(ctx *gin.Context) {
 		SELECT sample_id,samples.firstname,samples.lastname,created_at,users.username, sputalysed
 		FROM samples
 		LEFT JOIN users ON samples.created_by = users.user_id
-		ORDER BY $1 DESC LIMIT $2
+		WHERE created_at >= current_date - interval '10 day'
+		ORDER BY $1 DESC LIMIT $2;
 		`
 
 	// TODO: Add pagination and filtering by params

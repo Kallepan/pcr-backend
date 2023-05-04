@@ -24,7 +24,7 @@ func GetSamplesAnalyses(ctx *gin.Context) {
 		LEFT JOIN sample_query ON samplesanalyses.sample_id = sample_query.sample_id
 		LEFT JOIN analyses ON samplesanalyses.analysis_id = analyses.analysis_id
 		LEFT JOIN users ON samplesanalyses.created_by = users.user_id
-
+		WHERE samplesanalyses.completed = false
 		ORDER BY $1 DESC LIMIT $2
 	`
 

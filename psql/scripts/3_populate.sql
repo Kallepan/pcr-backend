@@ -1,0 +1,31 @@
+INSERT INTO analyses (
+    analyt,
+    material,
+    assay,
+    ready_mix
+)
+VALUES 
+('CMV','EP','Plasma',TRUE),
+('CMV','E','WB',TRUE),
+('CMV','Liq','CSF',TRUE),
+('CMV','Urin','Urine',TRUE),
+('CMV','ABN','BS (buccal swab)',TRUE),
+('CMV','AB','BS (buccal swab)',TRUE),
+('CMV','Fruchtwasser','AF',TRUE),
+('CMV','Stuhl','Generic',TRUE),
+('CMV','Serum','Generic',TRUE),
+('CMV','BAL','BAL',TRUE),
+('CMV','SEB','BAL',TRUE),
+('CMV','SET','BAL',TRUE),
+('EBV','E','WB',TRUE),
+('EBV','EP','Plasma',TRUE),
+('EBV','BAL','Generic',TRUE),
+('EBV','SEB','Generic',TRUE),
+('EBV','SET','Generic',TRUE),
+('HEV','EP','Plasma',FALSE),
+('HEV','St','Generic',FALSE),
+('HEV','S','Generic',FALSE),
+('PNJ','BAL','BAL',TRUE),
+('PNJ','SPU','SPU',TRUE),
+('PNJ','SEB','SPU',TRUE),
+('PNJ','SET','SPU',TRUE);

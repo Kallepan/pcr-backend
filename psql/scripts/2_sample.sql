@@ -14,6 +14,7 @@ CREATE TABLE samples (
     firstname VARCHAR(100) NOT NULL,
     lastname VARCHAR(100) NOT NULL,
 
+    comment VARCHAR(255) DEFAULT NULL,
     sputalysed BOOLEAN NOT NULL DEFAULT FALSE,
 
     created_by UUID REFERENCES users(user_id) ON UPDATE CASCADE ON DELETE SET NULL,
@@ -24,9 +25,9 @@ CREATE TABLE samplesanalyses (
     sample_id VARCHAR(12) REFERENCES samples(sample_id) ON UPDATE CASCADE ON DELETE CASCADE,
     analysis_id INTEGER REFERENCES analyses(analysis_id) ON UPDATE CASCADE ON DELETE CASCADE,
 
-    run VARCHAR(20),
-    device VARCHAR(20),
-    completed BOOLEAN NOT NULL DEFAULT FALSE,
+    run VARCHAR(20) DEFAULT NULL,
+    device VARCHAR(20) DEFAULT NULL,
+    position INTEGER DEFAULT NULL,
     
     created_by UUID REFERENCES users(user_id) ON UPDATE CASCADE ON DELETE SET NULL,
     created_at TIMESTAMP with time zone DEFAULT CURRENT_TIMESTAMP,

@@ -12,10 +12,11 @@ import (
 )
 
 type AddAnalysisToSampleRequest struct {
-	SampleID   string `json:"sample_id" binding:"required"`
-	AnalysisID string `json:"analysis_id" binding:"required"`
-	Run        string `json:"run"`
-	Device     string `json:"device"`
+	SampleID   string            `json:"sample_id" binding:"required"`
+	AnalysisID string            `json:"analysis_id" binding:"required"`
+	Run        models.NullString `json:"run,omitempty"`
+	Device     models.NullString `json:"device,omitempty"`
+	Position   models.NullInt64  `json:"position,omitempty"`
 }
 
 func AddAnalysisToSample(ctx *gin.Context) {
@@ -58,7 +59,7 @@ func AddAnalysisToSample(ctx *gin.Context) {
 	sample_analysis.Analysis.AnalysisID = body.AnalysisID
 	sample_analysis.Run = body.Run
 	sample_analysis.Device = body.Device
-	sample_analysis.Completed = false
+	sample_analysis.Position = body.Position
 
 	// Run query
 	query := `

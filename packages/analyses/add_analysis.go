@@ -31,7 +31,7 @@ func AddAnalysis(ctx *gin.Context) {
 	}
 
 	// Check if analysis already exists
-	if AnalysisExists(analysis) {
+	if AnalysisExists(analysis.Analyt, analysis.Material, analysis.Assay) {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": "analysis already exists"})
 		return
 	}

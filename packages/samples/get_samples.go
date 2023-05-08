@@ -12,7 +12,7 @@ func GetSamples(ctx *gin.Context) {
 	var samples []models.Sample
 
 	query := `
-		SELECT sample_id,samples.firstname,samples.lastname,created_at,users.username, sputalysed
+		SELECT sample_id,samples.firstname,samples.lastname,sputalysed,comment,created_at,users.username
 		FROM samples
 		LEFT JOIN users ON samples.created_by = users.user_id
 		WHERE created_at >= current_date - interval '10 day'
@@ -29,16 +29,11 @@ func GetSamples(ctx *gin.Context) {
 
 	for rows.Next() {
 		var sample models.Sample
-
-		if err := rows.Scan(&sample.SampleID, &sample.FirstName, &sample.LastName, &sample.CreatedAt, &sample.CreatedBy, &sample.Sputalysed); err != nil {
-			break
+		if err := rows.Scan(&sample.SampleID, &sample.FirstName, &sample.LastName, &sample.Sputalysed, &sample.Comment, &sample.CreatedAt, &sample.CreatedBy); err != nil {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+			return
 		}
 		samples = append(samples, sample)
-	}
-
-	if err = rows.Err(); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
-		return
 	}
 
 	ctx.JSON(http.StatusOK, &samples)

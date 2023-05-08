@@ -13,6 +13,11 @@ func DeleteAnalysis(ctx *gin.Context) {
 	material := ctx.Param("material")
 	assay := ctx.Param("assay")
 
+	if !AnalysisExists(analyt, material, assay) {
+		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": "analysis not found"})
+		return
+	}
+
 	query := "DELETE FROM analyses WHERE analyt = $1 AND material = $2 AND assay = $3"
 	_, err := database.Instance.Exec(query, analyt, material, assay)
 

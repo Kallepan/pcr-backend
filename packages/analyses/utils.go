@@ -7,7 +7,7 @@ import (
 	"gitlab.com/kaka/pcr-backend/common/models"
 )
 
-func AnalysisExists(analysis models.Analysis) bool {
+func AnalysisExists(Analyt string, Material string, Assay string) bool {
 	query := `
 		SELECT EXISTS(
 		SELECT * 
@@ -15,7 +15,7 @@ func AnalysisExists(analysis models.Analysis) bool {
 		WHERE analyt = $1 AND material = $2 AND assay = $3)`
 
 	var exists bool
-	err := database.Instance.QueryRow(query, analysis.Analyt, analysis.Material, analysis.Assay).Scan(&exists)
+	err := database.Instance.QueryRow(query, Analyt, Material, Assay).Scan(&exists)
 
 	return exists && err != sql.ErrNoRows
 }

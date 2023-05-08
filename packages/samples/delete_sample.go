@@ -12,6 +12,11 @@ import (
 func DeleteSample(ctx *gin.Context) {
 	sample_id := ctx.Param("sample_id")
 
+	if !SampleExists(sample_id) {
+		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": "sample not found"})
+		return
+	}
+
 	query := `DELETE FROM samples WHERE sample_id = $1`
 
 	_, err := database.Instance.Exec(query, sample_id)

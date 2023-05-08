@@ -13,6 +13,7 @@ type UpdateSampleRequest struct {
 	FirstName  string `json:"firstname" binding:"required"`
 	LastName   string `json:"lastname" binding:"required"`
 	Sputalysed *bool  `json:"sputalysed" binding:"required"`
+	Comment    string `json:"comment,omitempty"`
 }
 
 func UpdateSample(ctx *gin.Context) {
@@ -32,16 +33,16 @@ func UpdateSample(ctx *gin.Context) {
 	}
 
 	query := `
-		WITH updated_sample as (UPDATE samples SET firstname = $1, lastname = $2, sputalysed = $3 WHERE sample_id = $4 returning *) 
-		SELECT sample_id, updated_sample.firstname, updated_sample.lastname, updated_sample.created_at, updated_sample.sputalysed , users.username 
+		WITH updated_sample as (UPDATE samples SET firstname = $1, lastname = $2, sputalysed = $3, comment = $4 WHERE sample_id = $5 returning *) 
+		SELECT sample_id, updated_sample.firstname, updated_sample.lastname, updated_sample.created_at, updated_sample.sputalysed, updated_sample.comment, users.username 
 		FROM updated_sample 
 		LEFT JOIN users ON updated_sample.created_by = users.user_id;`
 
-	result := database.Instance.QueryRow(query, body.FirstName, body.LastName, body.Sputalysed, sample_id)
+	result := database.Instance.QueryRow(query, body.FirstName, body.LastName, body.Sputalysed, body.Comment, sample_id)
 
 	var sample models.Sample
 
-	switch err := result.Scan(&sample.SampleID, &sample.FirstName, &sample.LastName, &sample.CreatedAt, &sample.Sputalysed, &sample.CreatedBy); err {
+	switch err := result.Scan(&sample.SampleID, &sample.FirstName, &sample.LastName, &sample.CreatedAt, &sample.Sputalysed, &sample.Comment, &sample.CreatedBy); err {
 	case nil:
 		break
 	default:

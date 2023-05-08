@@ -19,12 +19,12 @@ func GetSamplesAnalyses(ctx *gin.Context) {
 			LEFT JOIN users ON samples.created_by = users.user_id
 			GROUP BY samplesanalyses.sample_id, samples.firstname, samples.lastname, samples.created_at, users.username
 		) 
-		SELECT samplesanalyses.sample_id, sample_query.firstname, sample_query.lastname, sample_query.created_at, sample_query.created_by, samplesanalyses.analysis_id, analyses.analyt, analyses.material, analyses.assay, analyses.ready_mix, samplesanalyses.run, samplesanalyses.device, samplesanalyses.completed, samplesanalyses.created_at, users.username
+		SELECT samplesanalyses.sample_id, sample_query.firstname, sample_query.lastname, sample_query.created_at, sample_query.created_by, samplesanalyses.analysis_id, analyses.analyt, analyses.material, analyses.assay, analyses.ready_mix, samplesanalyses.run, samplesanalyses.device, samplesanalyses.position, samplesanalyses.created_at, users.username
 		FROM samplesanalyses
 		LEFT JOIN sample_query ON samplesanalyses.sample_id = sample_query.sample_id
 		LEFT JOIN analyses ON samplesanalyses.analysis_id = analyses.analysis_id
 		LEFT JOIN users ON samplesanalyses.created_by = users.user_id
-		WHERE samplesanalyses.completed = false
+		WHERE samplesanalyses.position IS NULL
 		ORDER BY $1 DESC LIMIT $2
 	`
 
@@ -43,7 +43,7 @@ func GetSamplesAnalyses(ctx *gin.Context) {
 		if err := rows.Scan(
 			&sample.SampleID, &sample.FirstName, &sample.LastName, &sample.CreatedAt, &sample.CreatedBy,
 			&analysis.AnalysisID, &analysis.Analyt, &analysis.Material, &analysis.Assay, &analysis.ReadyMix,
-			&sampleAnalysis.Run, &sampleAnalysis.Device, &sampleAnalysis.Completed, &sampleAnalysis.CreatedAt, &sampleAnalysis.CreatedBy); err != nil {
+			&sampleAnalysis.Run, &sampleAnalysis.Device, &sampleAnalysis.Position, &sampleAnalysis.CreatedAt, &sampleAnalysis.CreatedBy); err != nil {
 
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		}

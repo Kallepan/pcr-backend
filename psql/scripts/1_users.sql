@@ -1,4 +1,4 @@
-CREATE TABLE users(
+CREATE TABLE IF NOT EXISTS users(
     username VARCHAR (255) UNIQUE NOT NULL,
     firstname VARCHAR (255) NOT NULL,
     lastname VARCHAR (255) NOT NULL,
@@ -11,4 +11,4 @@ CREATE TABLE users(
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 ALTER TABLE users ALTER COLUMN user_id SET DEFAULT uuid_generate_v4();
-CREATE UNIQUE INDEX users_username_idx ON users (username);
+CREATE UNIQUE INDEX IF NOT EXISTS users_username_idx ON users (username);

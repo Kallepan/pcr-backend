@@ -1,4 +1,4 @@
-CREATE TABLE analyses (
+CREATE TABLE IF NOT EXISTS analyses (
     analysis_id SERIAL PRIMARY KEY,
 
     analyt VARCHAR(5),
@@ -9,7 +9,7 @@ CREATE TABLE analyses (
     CONSTRAINT unique_analyt_material_assay UNIQUE (analyt, material, assay)
 );
 
-CREATE TABLE samples (
+CREATE TABLE IF NOT EXISTS samples (
     sample_id VARCHAR(12) PRIMARY KEY,
     firstname VARCHAR(100) NOT NULL,
     lastname VARCHAR(100) NOT NULL,
@@ -21,7 +21,7 @@ CREATE TABLE samples (
     created_at TIMESTAMP with time zone DEFAULT CURRENT_TIMESTAMP
 );
 
-CREATE TABLE samplesanalyses (
+CREATE TABLE IF NOT EXISTS samplesanalyses (
     sample_id VARCHAR(12) REFERENCES samples(sample_id) ON UPDATE CASCADE ON DELETE CASCADE,
     analysis_id INTEGER REFERENCES analyses(analysis_id) ON UPDATE CASCADE ON DELETE CASCADE,
 
@@ -36,10 +36,10 @@ CREATE TABLE samplesanalyses (
 );
 
 -- creates an index of certain tables to speed up queries
-CREATE INDEX idx_samplesanalyses_analysis_id ON samplesanalyses (analysis_id);
-CREATE INDEX idx_samplesanalyses_sample_id ON samplesanalyses (sample_id);
-CREATE INDEX idx_samples_sample_id_like ON samples (sample_id varchar_pattern_ops);
+CREATE INDEX IF NOT EXISTS idx_samplesanalyses_analysis_id ON samplesanalyses (analysis_id);
+CREATE INDEX IF NOT EXISTS idx_samplesanalyses_sample_id ON samplesanalyses (sample_id);
+CREATE INDEX IF NOT EXISTS idx_samples_sample_id_like ON samples (sample_id varchar_pattern_ops);
 
-CREATE INDEX idx_analyses_analyt ON analyses (analyt);
-CREATE INDEX idx_analyses_material ON analyses (material);
-CREATE INDEX idx_analyses_assay ON analyses (assay);
+CREATE INDEX IF NOT EXISTS idx_analyses_analyt ON analyses (analyt);
+CREATE INDEX IF NOT EXISTS idx_analyses_material ON analyses (material);
+CREATE INDEX IF NOT EXISTS idx_analyses_assay ON analyses (assay);

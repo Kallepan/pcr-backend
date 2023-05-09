@@ -1,7 +1,7 @@
 package main
 
 import (
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"testing"
@@ -27,7 +27,7 @@ func TestPing(t *testing.T) {
 
 	expectedBody := `{"message":"pong"}`
 
-	responseData, _ := ioutil.ReadAll(w.Body)
+	responseData, _ := io.ReadAll(w.Body)
 	assert.Equal(t, expectedBody, string(responseData))
 	assert.Equal(t, 200, w.Code)
 }

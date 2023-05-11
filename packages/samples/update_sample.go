@@ -32,7 +32,7 @@ func UpdateSample(ctx *gin.Context) {
 	}
 
 	query := `
-		WITH updated_sample as (UPDATE samples SET full_name = $1, sputalysed = $3, comment = $4 WHERE sample_id = $5 returning *) 
+		WITH updated_sample as (UPDATE samples SET full_name = $1, sputalysed = $2, comment = $3 WHERE sample_id = $4 returning *) 
 		SELECT sample_id, updated_sample.full_name, updated_sample.created_at, updated_sample.sputalysed, updated_sample.comment, users.username 
 		FROM updated_sample 
 		LEFT JOIN users ON updated_sample.created_by = users.user_id;`

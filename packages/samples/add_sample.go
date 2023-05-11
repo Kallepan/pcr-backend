@@ -10,10 +10,10 @@ import (
 )
 
 type AddSampleRequest struct {
-	SampleID   string            `json:"sample_id" binding:"required"`
-	FullName   string            `json:"full_name" binding:"required"`
-	Sputalysed bool              `json:"sputalysed"`
-	Comment    models.NullString `json:"comment,omitempty"`
+	SampleID   string `json:"sample_id" binding:"required"`
+	FullName   string `json:"full_name" binding:"required"`
+	Sputalysed bool   `json:"sputalysed"`
+	Comment    string `json:"comment,omitempty"`
 }
 
 func AddSample(ctx *gin.Context) {

@@ -64,17 +64,17 @@ func AddAnalysisToSample(ctx *gin.Context) {
 	// Run query
 	query := `
 		WITH sample_query AS (
-		SELECT samples.sample_id, samples.firstname, samples.lastname, samples.created_at, samples.created_by, samples.sputalysed, users.username AS sample_created_by
+		SELECT samples.sample_id, samples.full_name, samples.created_at, samples.created_by, samples.sputalysed, users.username AS sample_created_by
 		FROM samples
 		LEFT JOIN users ON samples.created_by = users.user_id
 		WHERE samples.sample_id = $1
-		GROUP BY samples.sample_id, samples.firstname, samples.lastname, samples.created_at, samples.sputalysed, users.username
+		GROUP BY samples.sample_id, samples.full_name, samples.created_at, samples.sputalysed, users.username
 		), new_sample_analysis AS ( 
 			INSERT INTO samplesanalyses (sample_id, analysis_id, run, device, created_by) 
 			VALUES ($1, $2, $3, $4, $5)
 			RETURNING sample_id, created_at, created_by, analysis_id
 		)
-			SELECT new_sample_analysis.created_at, users.username, analyses.analyt, analyses.material, analyses.assay, analyses.ready_mix, sample_query.firstname, sample_query.lastname, sample_query.sputalysed, sample_query.created_at, sample_query.sample_created_by
+			SELECT new_sample_analysis.created_at, users.username, analyses.analyt, analyses.material, analyses.assay, analyses.ready_mix, sample_query.full_name, sample_query.sputalysed, sample_query.created_at, sample_query.sample_created_by
 			FROM new_sample_analysis
 			LEFT JOIN sample_query ON new_sample_analysis.sample_id = sample_query.sample_id
 			LEFT JOIN users ON new_sample_analysis.created_by = users.user_id
@@ -93,8 +93,7 @@ func AddAnalysisToSample(ctx *gin.Context) {
 		&sample_analysis.Analysis.Material,
 		&sample_analysis.Analysis.Assay,
 		&sample_analysis.Analysis.ReadyMix,
-		&sample_analysis.Sample.FirstName,
-		&sample_analysis.Sample.LastName,
+		&sample_analysis.Sample.FullName,
 		&sample_analysis.Sample.Sputalysed,
 		&sample_analysis.Sample.CreatedAt,
 		&sample_analysis.Sample.CreatedBy)

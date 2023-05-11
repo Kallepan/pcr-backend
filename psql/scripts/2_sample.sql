@@ -11,8 +11,7 @@ CREATE TABLE IF NOT EXISTS analyses (
 
 CREATE TABLE IF NOT EXISTS samples (
     sample_id VARCHAR(12) PRIMARY KEY,
-    firstname VARCHAR(100) NOT NULL,
-    lastname VARCHAR(100) NOT NULL,
+    full_name VARCHAR(255) NOT NULL,
 
     comment VARCHAR(255) DEFAULT NULL,
     sputalysed BOOLEAN NOT NULL DEFAULT FALSE,

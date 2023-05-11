@@ -13,13 +13,13 @@ func GetSamplesAnalyses(ctx *gin.Context) {
 
 	query := `
 		WITH sample_query AS (
-			SELECT samplesanalyses.sample_id, samples.firstname, samples.lastname, samples.created_at, users.username AS created_by
+			SELECT samplesanalyses.sample_id, samples.full_name, samples.created_at, users.username AS created_by
 			FROM samplesanalyses
 			LEFT JOIN samples ON samplesanalyses.sample_id = samples.sample_id
 			LEFT JOIN users ON samples.created_by = users.user_id
-			GROUP BY samplesanalyses.sample_id, samples.firstname, samples.lastname, samples.created_at, users.username
+			GROUP BY samplesanalyses.sample_id, samples.full_name, samples.created_at, users.username
 		) 
-		SELECT samplesanalyses.sample_id, sample_query.firstname, sample_query.lastname, sample_query.created_at, sample_query.created_by, samplesanalyses.analysis_id, analyses.analyt, analyses.material, analyses.assay, analyses.ready_mix, samplesanalyses.run, samplesanalyses.device, samplesanalyses.position, samplesanalyses.created_at, users.username
+		SELECT samplesanalyses.sample_id, sample_query.full_name, sample_query.created_at, sample_query.created_by, samplesanalyses.analysis_id, analyses.analyt, analyses.material, analyses.assay, analyses.ready_mix, samplesanalyses.run, samplesanalyses.device, samplesanalyses.position, samplesanalyses.created_at, users.username
 		FROM samplesanalyses
 		LEFT JOIN sample_query ON samplesanalyses.sample_id = sample_query.sample_id
 		LEFT JOIN analyses ON samplesanalyses.analysis_id = analyses.analysis_id
@@ -41,7 +41,7 @@ func GetSamplesAnalyses(ctx *gin.Context) {
 		var analysis models.Analysis
 
 		if err := rows.Scan(
-			&sample.SampleID, &sample.FirstName, &sample.LastName, &sample.CreatedAt, &sample.CreatedBy,
+			&sample.SampleID, &sample.FullName, &sample.CreatedAt, &sample.CreatedBy,
 			&analysis.AnalysisID, &analysis.Analyt, &analysis.Material, &analysis.Assay, &analysis.ReadyMix,
 			&sampleAnalysis.Run, &sampleAnalysis.Device, &sampleAnalysis.Position, &sampleAnalysis.CreatedAt, &sampleAnalysis.CreatedBy); err != nil {
 

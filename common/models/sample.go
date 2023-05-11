@@ -42,8 +42,7 @@ type SampleAnalysis struct {
 
 type Sample struct {
 	SampleID   string     `json:"sample_id"`
-	FirstName  string     `json:"first_name"`
-	LastName   string     `json:"last_name"`
+	FullName   string     `json:"full_name"`
 	Sputalysed bool       `json:"sputalysed"`
 	Comment    NullString `json:"comment"`
 

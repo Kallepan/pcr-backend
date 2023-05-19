@@ -25,10 +25,10 @@ func GetSamplesAnalyses(ctx *gin.Context) {
 		LEFT JOIN analyses ON samplesanalyses.analysis_id = analyses.analysis_id
 		LEFT JOIN users ON samplesanalyses.created_by = users.user_id
 		WHERE samplesanalyses.position IS NULL
-		ORDER BY $1 DESC LIMIT $2
+		ORDER BY samplesanalyses.created_at DESC LIMIT $1;
 	`
 
-	rows, err := database.Instance.Query(query, "samplesanalyses.created_at", 100)
+	rows, err := database.Instance.Query(query, 100)
 
 	if err != nil {
 		ctx.AbortWithStatusJSON(500, gin.H{"message": err.Error()})

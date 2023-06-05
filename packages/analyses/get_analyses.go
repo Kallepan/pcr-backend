@@ -65,7 +65,6 @@ func getFilterString(query_params *AnalysisQueryParams) (string, []interface{}) 
 			}
 		}
 	}
-	println(query, params)
 
 	return query, params
 }

@@ -16,7 +16,7 @@ func GetSamples(ctx *gin.Context) {
 		FROM samples
 		LEFT JOIN users ON samples.created_by = users.user_id
 		WHERE created_at >= current_date - interval '10 day'
-		ORDER BY created_at ASC;
+		ORDER BY created_at DESC;
 		`
 
 	// TODO: Add pagination and filtering by params
@@ -33,7 +33,6 @@ func GetSamples(ctx *gin.Context) {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 			return
 		}
-		println(sample.SampleID, sample.CreatedAt)
 		samples = append(samples, sample)
 	}
 

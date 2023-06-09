@@ -24,14 +24,15 @@ CREATE TABLE IF NOT EXISTS samplesanalyses (
     sample_id VARCHAR(12) REFERENCES samples(sample_id) ON UPDATE CASCADE ON DELETE CASCADE,
     analysis_id INTEGER REFERENCES analyses(analysis_id) ON UPDATE CASCADE ON DELETE CASCADE,
 
-    run VARCHAR(20) DEFAULT '' NOT NULL,
-    device VARCHAR(20) DEFAULT '' NOT NULL,
+    run VARCHAR(20) DEFAULT NULL,
+    device VARCHAR(20) DEFAULT NULL,
     position INTEGER DEFAULT NULL,
     
     created_by UUID REFERENCES users(user_id) ON UPDATE CASCADE ON DELETE SET NULL,
     created_at TIMESTAMP with time zone DEFAULT CURRENT_TIMESTAMP,
 
-    CONSTRAINT sample_analysis_pk PRIMARY KEY (sample_id, analysis_id) -- composite primary key
+    CONSTRAINT sample_analysis_pk PRIMARY KEY (sample_id, analysis_id), -- composite primary key
+    CONSTRAINT unique_run UNIQUE (run, device, position) -- unique postition in a run
 );
 
 -- creates an index of certain tables to speed up queries

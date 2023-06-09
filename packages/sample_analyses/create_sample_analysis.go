@@ -12,11 +12,11 @@ import (
 )
 
 type AddAnalysisToSampleRequest struct {
-	SampleID   string `json:"sample_id" binding:"required"`
-	AnalysisID string `json:"analysis_id" binding:"required"`
-	Run        string `json:"run,omitempty"`
-	Device     string `json:"device,omitempty"`
-	Position   *int   `json:"position,omitempty"`
+	SampleID   string  `json:"sample_id" binding:"required"`
+	AnalysisID string  `json:"analysis_id" binding:"required"`
+	Run        *string `json:"run,omitempty"`
+	Device     *string `json:"device,omitempty"`
+	Position   *int    `json:"position,omitempty"`
 }
 
 func AddAnalysisToSample(ctx *gin.Context) {

@@ -1,9 +1,10 @@
 package models
 
 type SampleAnalysis struct {
-	Run      string `json:"run"`
-	Device   string `json:"device"`
-	Position *int   `json:"position"`
+	Run       *string `json:"run"`
+	Device    *string `json:"device"`
+	Position  *int    `json:"position"`
+	Completed *bool   `json:"completed"`
 
 	CreatedBy string `json:"created_by"`
 	CreatedAt string `json:"created_at"`

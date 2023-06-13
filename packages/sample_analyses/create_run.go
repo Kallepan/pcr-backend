@@ -37,14 +37,13 @@ type ExportData struct {
 	// Control info
 	Description *string
 
-	// Run info
-	Position *int
+	IsControl bool
 }
 
 func createCopy(templatePath string) (string, error) {
 	// Creates a copy of the template file to the tmp folder renaming it with a timestamp
 
-	outputPath := fmt.Sprintf("tmp/%s.xlsx", time.Now().Format("20060102150405"))
+	outputPath := fmt.Sprintf("tmp/%s.xlsm", time.Now().Format("20060102150405"))
 
 	src, err := os.Open(templatePath)
 	if err != nil {
@@ -66,81 +65,79 @@ func createCopy(templatePath string) (string, error) {
 	return outputPath, nil
 }
 
-func getFreePositionFromDatabase() (int, error) {
-	// Get latest position from today from database
-	freePosition := 0
-
-	query := `
-		SELECT position
-		FROM samplesanalyses
-		WHERE 
-			DATE(created_at) = CURRENT_DATE AND
-			position IS NOT NULL
-		ORDER BY position DESC
-		LIMIT 1;
-		`
-
-	row := database.Instance.QueryRow(query)
-	err := row.Scan(&freePosition)
-	switch {
-	case err == sql.ErrNoRows:
-		return 1, nil
-	case err != nil:
-		return 0, err
-	default:
-		return freePosition + 1, nil
-	}
-}
-
-func UpdateSampleAnalysisInDatabase(sampleID string, analysisID string, position int, run string, device string) error {
+func UpdateSampleAnalysisInDatabase(sampleID string, analysisID string, run string, device string) error {
 	query := `
 		UPDATE samplesanalyses
 		SET
-			position = $1,
-			run = $2,
-			device = $3
+			run = $1,
+			device = $2
 		WHERE
-			sample_id = $4 AND
-			analysis_id = $5;
+			sample_id = $3 AND
+			analysis_id = $4;
 		`
 
-	_, err := database.Instance.Exec(query, position, run, device, sampleID, analysisID)
+	_, err := database.Instance.Exec(query, run, device, sampleID, analysisID)
 	return err
 }
 
-func CheckIfSampleAnalysisWasAlreadyUsed(sampleID string, analysisID string) error {
+func GetPositionForSampleAnalysis(tx *sql.Tx, sampleID string, analysisID string) (*int, error) {
+	// Fetch position for sample analysis
+	var position int
+	if err := tx.QueryRow(`
+		SELECT position 
+		FROM samplesanalyses 
+		WHERE 
+			sample_id = $1 AND
+			analysis_id = $2
+		`, sampleID, analysisID).Scan(&position); err != nil {
+		return nil, err
+	}
+
+	return &position, nil
+}
+
+func CheckIfSampleAnalysisIsInRun(sampleID string, analysisID string) error {
 	query := `
 		SELECT *
 		FROM samplesanalyses
 		WHERE
 			sample_id = $1 AND
 			analysis_id = $2 AND (
-				position IS NOT NULL OR
-				run IS NOT NULL OR
+				run IS NOT NULL AND
 				device IS NOT NULL
 			)
-		`
-
-	row := database.Instance.QueryRow(query, sampleID, analysisID)
-	err := row.Scan()
-	switch {
-	case err == sql.ErrNoRows:
+	`
+	err := database.Instance.QueryRow(query, sampleID, analysisID).Scan()
+	switch err {
+	case sql.ErrNoRows:
 		return nil
-	case err != nil:
-		return err
 	default:
 		return fmt.Errorf("sample analysis was already used")
 	}
 }
 
 func CreateRun(ctx *gin.Context) {
+	// Create transaction to rollback if something goes wrong
+	tx, err := database.Instance.Begin()
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
+
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": fmt.Sprintf("%s", r)})
+		}
+	}()
+
 	var request CreateRunRequest
 	if err := ctx.ShouldBindJSON(&request); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
 	// Load template
-	templatePath := "templates/v1.xlsx"
+	templatePath := "templates/v1.xlsm"
 
 	// Create copy of template
 	outputPath, err := createCopy(templatePath)
@@ -155,28 +152,24 @@ func CreateRun(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
-	defer file.Close()
-	defer os.Remove(outputPath)
-
-	freePosition, err := getFreePositionFromDatabase()
-	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
-		return
-	}
+	// Close file and remove it from disk
+	defer func() {
+		file.Close()
+		os.Remove(outputPath)
+	}()
 
 	var exportData []ExportData
-	// Fetch data from database for SampleAnalyses such as final position, last run, etc.
-	for idx, postElement := range request.PostElements {
+	// Validate data in a separate loop to avoid partial data being inserted
+	for _, postElement := range request.PostElements {
 		if postElement.SampleID != nil && postElement.AnalysisID != nil {
 			// SampleAnalysis
 			// Check if SampleAnalysis was already used
-			err := CheckIfSampleAnalysisWasAlreadyUsed(*postElement.SampleID, *postElement.AnalysisID)
+			err := CheckIfSampleAnalysisIsInRun(*postElement.SampleID, *postElement.AnalysisID)
 			if err != nil {
 				ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": fmt.Sprintf("Sample: %s, Analysis: %s was already used", *postElement.SampleID, *postElement.AnalysisID)})
 				return
 			}
 
-			newPosition := freePosition + idx
 			// Create new element for exportData
 			var exportDataElement ExportData
 
@@ -184,66 +177,118 @@ func CreateRun(ctx *gin.Context) {
 			sample, err := samples.FetchSampleInformationFromDatabase(*postElement.SampleID)
 			if err != nil {
 				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+				tx.Rollback()
 				return
 			}
 			analysis, err := analyses.FetchAnalysisInformationFromDatabase(*postElement.AnalysisID)
 			if err != nil {
 				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+				tx.Rollback()
 				return
 			}
 			exportDataElement.sample = sample
 			exportDataElement.analysis = analysis
-			exportDataElement.Description = nil
-			// Update position
-			exportDataElement.Position = &newPosition
-
+			exportDataElement.IsControl = false
+			// Append description --> last occurence of sample in a run
 			exportData = append(exportData, exportDataElement)
 		} else if postElement.ControlID != nil && postElement.Description != nil {
 			// Control
-			// Create new element for exportData
 			var exportDataElement ExportData
 			exportDataElement.Description = postElement.Description
-			exportDataElement.Position = nil
-
+			exportDataElement.IsControl = true
 			exportData = append(exportData, exportDataElement)
 		} else {
 			ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": fmt.Sprintf("%v is not valid data", postElement)})
+			tx.Rollback()
 			return
 		}
 	}
 
-	// Update SampleAnalysis in the database
-	for idx, element := range exportData {
-		if element.Position == nil {
-			// Control, we don't need to insert it into the database
-			continue
+	// Insert data into database and excel file
+	for idx, exportDataElement := range exportData {
+		if !exportDataElement.IsControl {
+			// SampleAnalysis
+			// Insert data into database -> position is auto incremented in the database
+			if err := UpdateSampleAnalysisInDatabase(exportDataElement.sample.SampleID, exportDataElement.analysis.AnalysisID, request.Run, request.Device); err != nil {
+				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+				tx.Rollback()
+				return
+			}
+
+			// Get position from database
+			position, err := GetPositionForSampleAnalysis(tx, exportDataElement.sample.SampleID, exportDataElement.analysis.AnalysisID)
+			if err != nil {
+				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+				tx.Rollback()
+				return
+			}
+
+			// Insert data into excel file
+			file.SetCellValue(
+				"Lauf",
+				fmt.Sprintf("A%d", idx+12),
+				*position,
+			)
+			file.SetCellValue(
+				"Lauf",
+				fmt.Sprintf("B%d", idx+12),
+				fmt.Sprintf("%s, %s", exportDataElement.sample.SampleID, exportDataElement.sample.FullName),
+			)
+			file.SetCellValue(
+				"Lauf",
+				fmt.Sprintf("C%d", idx+12),
+				fmt.Sprintf("%s-%s-%s", exportDataElement.analysis.Analyt, exportDataElement.analysis.Material, exportDataElement.analysis.Assay),
+			)
+			file.SetCellValue(
+				"Lauf",
+				fmt.Sprintf("E%d", idx+12),
+				exportDataElement.sample.Comment,
+			)
+			if exportDataElement.sample.Sputalysed {
+				file.SetCellValue(
+					"Lauf",
+					fmt.Sprintf("F%d", idx+12),
+					"X",
+				)
+			}
+		} else {
+			// Control
+			// Insert data into excel file
+			file.SetCellValue(
+				"Lauf",
+				fmt.Sprintf("A%d", idx+12),
+				"NA",
+			)
+			file.SetCellValue(
+				"Lauf",
+				fmt.Sprintf("D%d", idx+12),
+				*exportDataElement.Description,
+			)
 		}
-		// SampleAnalysis
-		err = UpdateSampleAnalysisInDatabase(element.sample.SampleID, element.analysis.AnalysisID, *element.Position, request.Run, request.Device)
-		if err != nil {
-			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
-			return
-		}
-		// Insert data into excel file
-		file.SetCellValue("Lauf", fmt.Sprintf("A%d", 12+idx), element.Position)
-		// TODO: Insert rest of letters
 	}
 
-	// Insert data into excel file
+	// Insert metadata into excel file
+	file.SetCellValue("Lauf", "B9", time.Now().Format("02.01.2006"))
 	file.SetCellValue("Lauf", "C9", request.Device)
 	file.SetCellValue("Lauf", "D9", request.Run)
 
 	// Set Headers and status
-	ctx.Header("Content-Type", "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet")
-	ctx.Header("Content-Disposition", "attachment; filename=run.xlsx")
+	ctx.Header("Content-Type", "application/vnd.ms-excel.sheet.macroEnabled.12")
+	ctx.Header("Content-Disposition", "attachment; filename=run.xlsm")
 
-	err = file.Write(ctx.Writer)
-	if err != nil {
+	if err := file.Write(ctx.Writer); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		tx.Rollback()
 		return
 	}
-	err = file.Save()
-	if err != nil {
+	if err := file.Save(); err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		tx.Rollback()
+		return
+	}
+
+	// Commit transaction
+	if err := tx.Commit(); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}

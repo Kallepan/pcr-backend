@@ -1,7 +1,6 @@
 package samplesanalyses
 
 import (
-	"database/sql"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -29,21 +28,22 @@ func UpdateSampleAnalysis(ctx *gin.Context) {
 		return
 	}
 
-	// Run query
-	query := `UPDATE samplesanalyses SET completed = $1 WHERE sample_id = $2 AND analysis_id = $3`
-
-	_, err := database.Instance.Exec(query, body.Completed, sample_id, analysis_id)
-
-	switch err {
-	case nil:
-		break
-	case sql.ErrNoRows:
-		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": "sample analysis not found"})
-		return
-	default:
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+	if *body.Completed {
+		ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"message": "cannot set completed to true"})
 		return
 	}
 
+	// Run query
+	query := `
+		UPDATE samplesanalyses
+		SET run_id = NULL, device_id = NULL, position = NULL
+		WHERE sample_id = $1 AND analysis_id = $2;
+	`
+	_, err := database.Instance.Exec(query, sample_id, analysis_id)
+
+	if err != nil {
+		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		return
+	}
 	ctx.Status(http.StatusOK)
 }

@@ -17,6 +17,7 @@ import (
 func main() {
 	connectionString := utils.GetConnectionString()
 	database.Connect(connectionString)
+	defer database.Instance.Close()
 
 	router := initRouter()
 	router.Run(":8080")

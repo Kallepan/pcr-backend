@@ -32,7 +32,7 @@ CREATE TABLE IF NOT EXISTS samplesanalyses (
     created_at TIMESTAMP with time zone DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT sample_analysis_pk PRIMARY KEY (sample_id, analysis_id), -- composite primary key
-    CONSTRAINT unique_run UNIQUE (run, device, position) -- unique postition in a run
+    CONSTRAINT unique_position_created_at UNIQUE (position, created_at) -- unique postition in a run
 );
 
 -- creates an index of certain tables to speed up queries

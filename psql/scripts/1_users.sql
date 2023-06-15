@@ -1,9 +1,7 @@
-CREATE EXTENSION chkpass;
-
-CREATE TABLE users(
+CREATE TABLE IF NOT EXISTS users(
     username VARCHAR (255) UNIQUE NOT NULL,
-    first_name VARCHAR (255) NOT NULL,
-    last_name VARCHAR (255) NOT NULL,
+    firstname VARCHAR (255) NOT NULL,
+    lastname VARCHAR (255) NOT NULL,
     email VARCHAR (255) UNIQUE NOT NULL,
     password VARCHAR(255) NOT NULL, 
     user_id UUID PRIMARY KEY,
@@ -13,3 +11,4 @@ CREATE TABLE users(
 
 CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 ALTER TABLE users ALTER COLUMN user_id SET DEFAULT uuid_generate_v4();
+CREATE UNIQUE INDEX IF NOT EXISTS users_username_idx ON users (username);

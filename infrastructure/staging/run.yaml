@@ -1,0 +1,104 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: pcr-backend
+    tier: backend
+  name: pcr-backend
+  namespace: pcr
+spec:
+  ports:
+  - name: gin
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: pcr-backend
+    tier: backend
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: postgres-container
+  name: postgres
+  namespace: pcr
+spec:
+  ports:
+  - port: 5432
+    protocol: TCP
+    targetPort: 5432
+  selector:
+    app: postgres-container
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: pcr-backend
+    tier: backend
+  name: pcr-backend
+  namespace: pcr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pcr-backend
+  template:
+    metadata:
+      labels:
+        app: pcr-backend
+        tier: backend
+    spec:
+      containers:
+      - envFrom:
+        - secretRef:
+            name: secrets
+        image: kallepan/pcr-backend:dev
+        imagePullPolicy: Always
+        name: pcr-backend
+        ports:
+        - containerPort: 8080
+          name: gin
+        resources:
+          limits:
+            memory: 1Gi
+          requests:
+            memory: 1Gi
+        securityContext:
+          allowPrivilegeEscalation: false
+      imagePullSecrets:
+      - name: regcred
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: postgres
+  namespace: pcr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres-container
+  template:
+    metadata:
+      labels:
+        app: postgres-container
+        tier: backend
+    spec:
+      containers:
+      - envFrom:
+        - secretRef:
+            name: secrets
+        image: postgres:15
+        imagePullPolicy: IfNotPresent
+        name: postgres-container
+        ports:
+        - containerPort: 5432
+        readinessProbe:
+          initialDelaySeconds: 30
+          tcpSocket:
+            port: 5432
+          timeoutSeconds: 5
+        securityContext:
+          allowPrivilegeEscalation: false

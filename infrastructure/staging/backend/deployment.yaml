@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: pcr-backend
+  namespace: pcr
+  labels:
+    app: pcr-backend
+    tier: backend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pcr-backend
+  template:
+    metadata:
+      labels:
+        app: pcr-backend
+        tier: backend
+    spec:
+      imagePullSecrets:
+      - name: regcred
+      containers:
+        - image: kallepan/pcr-backend:dev
+          imagePullPolicy: Always
+          name: pcr-backend
+          envFrom:
+            - secretRef:
+                name: secrets
+          ports:
+            - containerPort: 8080
+              name: gin
+          resources:
+            limits:
+              memory: "1Gi"
+            requests:
+              memory: "1Gi"
+          securityContext:
+            allowPrivilegeEscalation: false

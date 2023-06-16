@@ -13,11 +13,11 @@ func FetchAnalysisInformationFromDatabase(analysisID string) (*models.Analysis, 
 
 	query :=
 		`
-		SELECT analysis_id,analyt,assay,material,ready_mix
+		SELECT analysis_id,analyt,assay,material,ready_mix,is_active
 		FROM analyses
 		WHERE analysis_id = $1;
 		`
-	err := database.Instance.QueryRow(query, analysisID).Scan(&analysis.AnalysisID, &analysis.Analyt, &analysis.Assay, &analysis.Material, &analysis.ReadyMix)
+	err := database.Instance.QueryRow(query, analysisID).Scan(&analysis.AnalysisID, &analysis.Analyt, &analysis.Assay, &analysis.Material, &analysis.ReadyMix, &analysis.IsActive)
 
 	if err != nil {
 		return nil, err

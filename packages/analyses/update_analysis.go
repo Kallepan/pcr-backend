@@ -1,7 +1,6 @@
 package analyses
 
 import (
-	"database/sql"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -9,7 +8,8 @@ import (
 )
 
 type UpdateAnalysisRequest struct {
-	ReadyMix bool `json:"ready_mix"`
+	ReadyMix *bool `json:"ready_mix"`
+	IsActive *bool `json:"is_active"`
 }
 
 func UpdateAnalysis(ctx *gin.Context) {
@@ -22,19 +22,43 @@ func UpdateAnalysis(ctx *gin.Context) {
 		return
 	}
 
-	query := "UPDATE analyses SET ready_mix = $1 WHERE analysis_id = $2"
-	_, err := database.Instance.Exec(query, request.ReadyMix, analysis_id)
+	if request.ReadyMix != nil {
+		err := updateReadyMix(ctx, analysis_id, request)
 
-	switch err {
-	case nil:
-		break
-	case sql.ErrNoRows:
-		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": "analysis not found"})
-		return
-	default:
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
-		return
+		if err != nil {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+			return
+		}
+	}
+
+	if request.IsActive != nil {
+		err := updateIsActive(ctx, analysis_id, request)
+
+		if err != nil {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+			return
+		}
 	}
 
 	ctx.Status(http.StatusOK)
+}
+
+func updateReadyMix(ctx *gin.Context, analysis_id string, request UpdateAnalysisRequest) error {
+	_, err := database.Instance.Exec("UPDATE analyses SET ready_mix = $1 WHERE analysis_id = $2 RETURNING *", *request.ReadyMix, analysis_id)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func updateIsActive(ctx *gin.Context, analysis_id string, request UpdateAnalysisRequest) error {
+	_, err := database.Instance.Exec("UPDATE analyses SET is_active = $1 WHERE analysis_id = $2", *request.IsActive, analysis_id)
+
+	if err != nil {
+		return err
+	}
+
+	return nil
 }

@@ -1,8 +1,9 @@
+# docker-compose.yml for development environment
 version: '3.3'
 
 services:
   db:
-    build: .
+    image: postgres:15
     container_name: postgres
     restart: always
     ports:

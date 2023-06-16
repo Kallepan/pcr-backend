@@ -31,4 +31,5 @@ type Analysis struct {
 	Assay    string `json:"assay"`
 
 	ReadyMix bool `json:"ready_mix"`
+	IsActive bool `json:"is_active"`
 }

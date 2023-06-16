@@ -137,7 +137,7 @@ func CreateRun(ctx *gin.Context) {
 		return
 	}
 	// Load template
-	templatePath := "templates/v1.xlsm"
+	templatePath := "/app/templates/v1.xlsm"
 
 	// Create copy of template
 	outputPath, err := createCopy(templatePath)

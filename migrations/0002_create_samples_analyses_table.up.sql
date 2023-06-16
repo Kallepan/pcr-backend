@@ -4,7 +4,9 @@ CREATE TABLE IF NOT EXISTS analyses (
     analyt VARCHAR(5),
     material VARCHAR(50),
     assay VARCHAR(50),
+
     ready_mix BOOLEAN NOT NULL DEFAULT FALSE,
+    is_active BOOLEAN NOT NULL DEFAULT TRUE,
 
     CONSTRAINT unique_analyt_material_assay UNIQUE (analyt, material, assay)
 );
@@ -43,3 +45,4 @@ CREATE INDEX IF NOT EXISTS idx_samples_sample_id_like ON samples (sample_id varc
 CREATE INDEX IF NOT EXISTS idx_analyses_analyt ON analyses (analyt);
 CREATE INDEX IF NOT EXISTS idx_analyses_material ON analyses (material);
 CREATE INDEX IF NOT EXISTS idx_analyses_assay ON analyses (assay);
+CREATE INDEX IF NOT EXISTS idx_analyses_is_active ON analyses (is_active);

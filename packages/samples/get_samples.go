@@ -19,7 +19,6 @@ func GetSamples(ctx *gin.Context) {
 		ORDER BY created_at DESC;
 		`
 
-	// TODO: Add pagination and filtering by params
 	rows, err := database.Instance.Query(query)
 
 	if err != nil {

@@ -1,0 +1,3 @@
+DROP TABLE IF EXISTS users;
+DROP INDEX IF EXISTS users_username_idx;
+DROP EXTENSION IF EXISTS "uuid-ossp";

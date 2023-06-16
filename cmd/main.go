@@ -17,6 +17,7 @@ import (
 func main() {
 	connectionString := utils.GetConnectionString()
 	database.Connect(connectionString)
+	database.Migrate()
 	defer database.Instance.Close()
 
 	router := initRouter()

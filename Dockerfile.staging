@@ -11,6 +11,9 @@ RUN go build -o /project/pcr-backend/build/main cmd/main.go
 
 FROM alpine:latest
 COPY --from=builder /project/pcr-backend/build/main /app/build/main
-COPY templates /templates
+COPY templates /app/templates
+COPY migrations /app/migrations
+
 EXPOSE 8080
+
 ENTRYPOINT [ "/app/build/main", "--prod" ]

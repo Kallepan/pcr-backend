@@ -13,11 +13,11 @@ func FetchAnalysisInformationFromDatabase(analysisID string) (*models.Analysis, 
 
 	query :=
 		`
-		SELECT analysis_id,analyt,assay,material,ready_mix,is_active
+		SELECT analysis_id,ready_mix,is_active
 		FROM analyses
 		WHERE analysis_id = $1;
 		`
-	err := database.Instance.QueryRow(query, analysisID).Scan(&analysis.AnalysisID, &analysis.Analyt, &analysis.Assay, &analysis.Material, &analysis.ReadyMix, &analysis.IsActive)
+	err := database.Instance.QueryRow(query, analysisID).Scan(&analysis.AnalysisId, &analysis.AnalysisId, &analysis.ReadyMix, &analysis.IsActive)
 
 	if err != nil {
 		return nil, err
@@ -41,9 +41,7 @@ func GetAnalysis(ctx *gin.Context) {
 }
 
 type AnalysisQueryParams struct {
-	Analyt   string `form:"analyt"`
-	Assay    string `form:"assay"`
-	Material string `form:"material"`
+	AnalysisId string `form:"analysis"`
 
 	// Pagination
 	OrderBy string `form:"order_by"`
@@ -53,17 +51,9 @@ type AnalysisQueryParams struct {
 func getFilterString(query_params *AnalysisQueryParams) (string, []interface{}) {
 	var filters []string
 	var params []interface{}
-	if query_params.Analyt != "" {
-		filters = append(filters, "analyt = $3")
-		params = append(params, query_params.Analyt)
-	}
-	if query_params.Assay != "" {
-		filters = append(filters, "assay = $4")
-		params = append(params, query_params.Assay)
-	}
-	if query_params.Material != "" {
-		filters = append(filters, "material = $5")
-		params = append(params, query_params.Material)
+	if query_params.AnalysisId != "" {
+		filters = append(filters, "analysis_id = $3")
+		params = append(params, query_params.AnalysisId)
 	}
 
 	query := ""
@@ -91,7 +81,7 @@ func GetAllAnalyses(ctx *gin.Context) {
 	// Get all analyses
 	query :=
 		`
-		SELECT analysis_id,analyt,assay,material,ready_mix
+		SELECT analysis_id,ready_mix,is_active
 		FROM analyses
 		`
 	// Add filters
@@ -110,7 +100,7 @@ func GetAllAnalyses(ctx *gin.Context) {
 	for rows.Next() {
 		var analysis models.Analysis
 
-		if err := rows.Scan(&analysis.AnalysisID, &analysis.Analyt, &analysis.Assay, &analysis.Material, &analysis.ReadyMix); err != nil {
+		if err := rows.Scan(&analysis.AnalysisId, &analysis.ReadyMix, &analysis.IsActive); err != nil {
 			break
 		}
 		analyses = append(analyses, analysis)

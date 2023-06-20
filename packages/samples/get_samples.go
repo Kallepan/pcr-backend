@@ -15,7 +15,7 @@ func GetSamples(ctx *gin.Context) {
 		SELECT sample_id,samples.full_name,sputalysed,comment,created_at,users.username
 		FROM samples
 		LEFT JOIN users ON samples.created_by = users.user_id
-		WHERE created_at >= current_date - interval '10 day'
+		WHERE created_at >= current_date - interval '14 day'
 		ORDER BY created_at DESC;
 		`
 

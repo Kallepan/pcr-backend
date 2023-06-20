@@ -18,7 +18,7 @@ import (
 
 type PostElementData struct {
 	SampleID    *string `json:"sample_id" binding:"required"`
-	AnalysisID  *string `json:"analysis_id" binding:"required"`
+	AnalysisId  *string `json:"analysis_id" binding:"required"`
 	ControlID   *string `json:"control_id" binding:"required"`
 	Description *string `json:"description" binding:"required"`
 }
@@ -161,12 +161,12 @@ func CreateRun(ctx *gin.Context) {
 	var exportData []ExportData
 	// Validate data in a separate loop to avoid partial data being inserted
 	for _, postElement := range request.PostElements {
-		if postElement.SampleID != nil && postElement.AnalysisID != nil {
+		if postElement.SampleID != nil && postElement.AnalysisId != nil {
 			// SampleAnalysis
 			// Check if SampleAnalysis was already used
-			err := CheckIfSampleAnalysisIsInRun(*postElement.SampleID, *postElement.AnalysisID)
+			err := CheckIfSampleAnalysisIsInRun(*postElement.SampleID, *postElement.AnalysisId)
 			if err != nil {
-				ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": fmt.Sprintf("Sample: %s, Analysis: %s was already used", *postElement.SampleID, *postElement.AnalysisID)})
+				ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": fmt.Sprintf("Sample: %s, Analysis: %s was already used", *postElement.SampleID, *postElement.AnalysisId)})
 				return
 			}
 
@@ -180,7 +180,7 @@ func CreateRun(ctx *gin.Context) {
 				tx.Rollback()
 				return
 			}
-			analysis, err := analyses.FetchAnalysisInformationFromDatabase(*postElement.AnalysisID)
+			analysis, err := analyses.FetchAnalysisInformationFromDatabase(*postElement.AnalysisId)
 			if err != nil {
 				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 				tx.Rollback()
@@ -209,14 +209,14 @@ func CreateRun(ctx *gin.Context) {
 		if !exportDataElement.IsControl {
 			// SampleAnalysis
 			// Insert data into database -> position is auto incremented in the database
-			if err := UpdateSampleAnalysisInDatabase(exportDataElement.sample.SampleID, exportDataElement.analysis.AnalysisID, request.Run, request.Device); err != nil {
+			if err := UpdateSampleAnalysisInDatabase(exportDataElement.sample.SampleID, exportDataElement.analysis.AnalysisId, request.Run, request.Device); err != nil {
 				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 				tx.Rollback()
 				return
 			}
 
 			// Get position from database
-			position, err := GetPositionForSampleAnalysis(tx, exportDataElement.sample.SampleID, exportDataElement.analysis.AnalysisID)
+			position, err := GetPositionForSampleAnalysis(tx, exportDataElement.sample.SampleID, exportDataElement.analysis.AnalysisId)
 			if err != nil {
 				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 				tx.Rollback()
@@ -237,7 +237,7 @@ func CreateRun(ctx *gin.Context) {
 			file.SetCellValue(
 				"Lauf",
 				fmt.Sprintf("C%d", idx+12),
-				fmt.Sprintf("%s-%s-%s", exportDataElement.analysis.Analyt, exportDataElement.analysis.Material, exportDataElement.analysis.Assay),
+				exportDataElement.analysis.AnalysisId,
 			)
 			file.SetCellValue(
 				"Lauf",

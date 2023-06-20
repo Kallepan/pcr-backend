@@ -13,9 +13,9 @@ func GetAnalysesForSample(ctx *gin.Context) {
 		WITH samples_analyses AS (
 			SELECT samplesanalyses.analysis_id
 			FROM samplesanalyses
-			WHERE samplesanalyses.sample_id = $1
+			WHERE samplesanalyses.sample_id = $1 AND samplesanalyses.deleted = false
 		)
-		SELECT analyses.analysis_id, analyses.analyt, analyses.material, analyses.assay, analyses.ready_mix
+		SELECT analyses.analysis_id, analyses.ready_mix, analyses.is_active
 		FROM analyses
 		RIGHT JOIN samples_analyses ON analyses.analysis_id = samples_analyses.analysis_id
 	`
@@ -30,7 +30,7 @@ func GetAnalysesForSample(ctx *gin.Context) {
 	for rows.Next() {
 		var analysis models.Analysis
 
-		if err := rows.Scan(&analysis.AnalysisID, &analysis.Analyt, &analysis.Material, &analysis.Assay, &analysis.ReadyMix); err != nil {
+		if err := rows.Scan(&analysis.AnalysisId, &analysis.ReadyMix, &analysis.IsActive); err != nil {
 			ctx.AbortWithStatusJSON(500, gin.H{"message": err.Error()})
 		}
 

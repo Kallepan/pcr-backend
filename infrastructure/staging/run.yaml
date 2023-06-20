@@ -53,7 +53,7 @@ spec:
       containers:
       - envFrom:
         - secretRef:
-            name: secrets
+            name: oe-secrets
         image: kallepan/pcr-backend:dev
         imagePullPolicy: Always
         name: pcr-backend
@@ -89,7 +89,7 @@ spec:
       containers:
       - envFrom:
         - secretRef:
-            name: secrets
+            name: oe-secrets
         image: postgres:15
         imagePullPolicy: IfNotPresent
         name: postgres-container

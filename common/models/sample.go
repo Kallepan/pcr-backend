@@ -1,10 +1,10 @@
 package models
 
 type SampleAnalysis struct {
-	Run       *string `json:"run"`
-	Device    *string `json:"device"`
-	Position  *int    `json:"position"`
-	Completed *bool   `json:"completed"`
+	Run      *string `json:"run"`
+	Device   *string `json:"device"`
+	Position *int    `json:"position"`
+	Deleted  *bool   `json:"deleted"`
 
 	CreatedBy string `json:"created_by"`
 	CreatedAt string `json:"created_at"`
@@ -18,17 +18,14 @@ type Sample struct {
 	FullName   string `json:"full_name"`
 	Sputalysed bool   `json:"sputalysed"`
 	Comment    string `json:"comment"`
+	Birthday   string `json:"birthday"`
 
 	CreatedAt string `json:"created_at"`
 	CreatedBy string `json:"created_by"`
 }
 
 type Analysis struct {
-	AnalysisID string `json:"analysis_id"`
-
-	Analyt   string `json:"analyt"`
-	Material string `json:"material"`
-	Assay    string `json:"assay"`
+	AnalysisId string `json:"analysis_id"`
 
 	ReadyMix bool `json:"ready_mix"`
 	IsActive bool `json:"is_active"`

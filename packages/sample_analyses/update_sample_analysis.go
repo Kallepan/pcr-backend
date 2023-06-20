@@ -8,7 +8,7 @@ import (
 )
 
 type UpdateSampleAnalysisRequest struct {
-	Completed *bool `json:"completed" binding:"required"`
+	Deleted *bool `json:"deleted" binding:"required"`
 }
 
 func UpdateSampleAnalysis(ctx *gin.Context) {
@@ -28,22 +28,28 @@ func UpdateSampleAnalysis(ctx *gin.Context) {
 		return
 	}
 
-	if *body.Completed {
-		ctx.AbortWithStatusJSON(http.StatusForbidden, gin.H{"message": "cannot set completed to true"})
-		return
-	}
-
 	// Run query
 	query := `
 		UPDATE samplesanalyses
-		SET run_id = NULL, device_id = NULL, position = NULL
+		SET deleted = $3
 		WHERE sample_id = $1 AND analysis_id = $2;
 	`
-	_, err := database.Instance.Exec(query, sample_id, analysis_id)
+	_, err := database.Instance.Exec(query, sample_id, analysis_id, *body.Deleted)
 
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 	ctx.Status(http.StatusOK)
+}
+
+func UpdateSampleAnalysisDeletedStatus(sample_id string, analysis_id string, deleted bool) error {
+	query := `
+		UPDATE samplesanalyses
+		SET deleted = $3
+		WHERE sample_id = $1 AND analysis_id = $2;
+	`
+	_, err := database.Instance.Exec(query, sample_id, analysis_id, deleted)
+
+	return err
 }

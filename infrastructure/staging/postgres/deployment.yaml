@@ -22,7 +22,7 @@ spec:
             - containerPort: 5432
           envFrom:
             - secretRef:
-                name: secrets
+                name: oe-secrets
           readinessProbe:
             tcpSocket:
               port: 5432

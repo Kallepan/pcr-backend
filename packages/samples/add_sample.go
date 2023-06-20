@@ -14,6 +14,7 @@ type AddSampleRequest struct {
 	FullName   string `json:"full_name" binding:"required"`
 	Sputalysed bool   `json:"sputalysed"`
 	Comment    string `json:"comment,omitempty"`
+	Birthday   string `json:"birthday" binding:"required"`
 }
 
 func AddSample(ctx *gin.Context) {
@@ -32,6 +33,7 @@ func AddSample(ctx *gin.Context) {
 		FullName:   request.FullName,
 		Sputalysed: sputalysed,
 		Comment:    request.Comment,
+		Birthday:   request.Birthday,
 	}
 
 	// Check if sample already exists
@@ -45,12 +47,12 @@ func AddSample(ctx *gin.Context) {
 	query := `
 		WITH new_sample AS 
 		(
-			INSERT INTO samples (sample_id,full_name,sputalysed,comment,created_by)
-			VALUES ($1, $2, $3, $4, $5) RETURNING created_at, created_by)
+			INSERT INTO samples (sample_id,full_name,sputalysed,comment,birthday,created_by)
+			VALUES ($1, $2, $3, $4, $5, $6) RETURNING created_at, created_by)
 			SELECT created_at, users.username
 			FROM new_sample
 			LEFT JOIN users ON new_sample.created_by = users.user_id`
-	err := database.Instance.QueryRow(query, sample.SampleID, sample.FullName, sample.Sputalysed, sample.Comment, user_id).Scan(&sample.CreatedAt, &sample.CreatedBy)
+	err := database.Instance.QueryRow(query, sample.SampleID, sample.FullName, sample.Sputalysed, sample.Comment, sample.Birthday, user_id).Scan(&sample.CreatedAt, &sample.CreatedBy)
 
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})

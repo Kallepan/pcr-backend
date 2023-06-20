@@ -9,6 +9,7 @@ import (
 	"github.com/golang-migrate/migrate/v4/database/postgres"
 	_ "github.com/golang-migrate/migrate/v4/source/file"
 	_ "github.com/lib/pq" // postgres driver
+	"gitlab.com/kaka/pcr-backend/utils"
 )
 
 var Instance *sql.DB
@@ -43,9 +44,9 @@ func Migrate() {
 		panic(err)
 	}
 
-	m, err := migrate.NewWithDatabaseInstance(
-		"file://migrations",
-		"postgres", driver)
+	migrationPath := utils.GetValueFromEnv("MIGRATION_PATH", "file://app/migrations")
+
+	m, err := migrate.NewWithDatabaseInstance(migrationPath, "postgres", driver)
 
 	if err != nil {
 		panic(err)

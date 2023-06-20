@@ -13,7 +13,7 @@ import (
 
 type AddAnalysisToSampleRequest struct {
 	SampleID   string  `json:"sample_id" binding:"required"`
-	AnalysisID string  `json:"analysis_id" binding:"required"`
+	AnalysisId string  `json:"analysis_id" binding:"required"`
 	Run        *string `json:"run,omitempty"`
 	Device     *string `json:"device,omitempty"`
 	Position   *int    `json:"position,omitempty"`
@@ -30,9 +30,8 @@ func AddAnalysisToSample(ctx *gin.Context) {
 	}
 
 	// Check if analysis exists
-	analysis, anlysis_err := analyses.AnalysisExistsByID(body.AnalysisID)
-	if anlysis_err != nil {
-		error_message := fmt.Sprintf("analysis %s does not exist", body.AnalysisID)
+	if !analyses.AnalysisExists(body.AnalysisId) {
+		error_message := fmt.Sprintf("analysis %s does not exist", body.AnalysisId)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": error_message})
 		return
 	}
@@ -45,9 +44,13 @@ func AddAnalysisToSample(ctx *gin.Context) {
 	}
 
 	// Check if sample analysis already exists
-	if SampleAnalysisExists(body.SampleID, body.AnalysisID) {
-		error_message := fmt.Sprintf("Probe mit Analyse %s %s-%s-%s existiert bereits", body.SampleID, analysis.Analyt, analysis.Material, analysis.Assay)
-		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": error_message})
+	if SampleAnalysisExists(body.SampleID, body.AnalysisId) {
+		// Sample already exists, update deleted status and return 200
+		err := UpdateSampleAnalysisDeletedStatus(body.SampleID, body.AnalysisId, false)
+		if err != nil {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+		}
+		ctx.Status(http.StatusOK)
 		return
 	}
 
@@ -56,7 +59,7 @@ func AddAnalysisToSample(ctx *gin.Context) {
 	sample_analysis.Sample = models.Sample{}
 	sample_analysis.Analysis = models.Analysis{}
 	sample_analysis.Sample.SampleID = body.SampleID
-	sample_analysis.Analysis.AnalysisID = body.AnalysisID
+	sample_analysis.Analysis.AnalysisId = body.AnalysisId
 	sample_analysis.Run = body.Run
 	sample_analysis.Device = body.Device
 	sample_analysis.Position = body.Position
@@ -74,7 +77,7 @@ func AddAnalysisToSample(ctx *gin.Context) {
 			VALUES ($1, $2, $3, $4, $5)
 			RETURNING sample_id, created_at, created_by, analysis_id
 		)
-			SELECT new_sample_analysis.created_at, users.username, analyses.analyt, analyses.material, analyses.assay, analyses.ready_mix, sample_query.full_name, sample_query.sputalysed, sample_query.created_at, sample_query.sample_created_by
+			SELECT new_sample_analysis.created_at, users.username, analyses.analysis_id, analyses.ready_mix, analyses.is_active, sample_query.full_name, sample_query.sputalysed, sample_query.created_at, sample_query.sample_created_by
 			FROM new_sample_analysis
 			LEFT JOIN sample_query ON new_sample_analysis.sample_id = sample_query.sample_id
 			LEFT JOIN users ON new_sample_analysis.created_by = users.user_id
@@ -83,16 +86,15 @@ func AddAnalysisToSample(ctx *gin.Context) {
 	err := database.Instance.QueryRow(
 		query,
 		&sample_analysis.Sample.SampleID,
-		&sample_analysis.Analysis.AnalysisID,
+		&sample_analysis.Analysis.AnalysisId,
 		&sample_analysis.Run,
 		&sample_analysis.Device,
 		user_id).Scan(
 		&sample_analysis.CreatedAt,
 		&sample_analysis.CreatedBy,
-		&sample_analysis.Analysis.Analyt,
-		&sample_analysis.Analysis.Material,
-		&sample_analysis.Analysis.Assay,
+		&sample_analysis.Analysis.AnalysisId,
 		&sample_analysis.Analysis.ReadyMix,
+		&sample_analysis.Analysis.IsActive,
 		&sample_analysis.Sample.FullName,
 		&sample_analysis.Sample.Sputalysed,
 		&sample_analysis.Sample.CreatedAt,

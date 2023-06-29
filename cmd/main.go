@@ -2,6 +2,7 @@ package main
 
 import (
 	"strings"
+	"time"
 
 	"github.com/gin-gonic/gin"
 	"gitlab.com/kaka/pcr-backend/common/controllers"
@@ -19,6 +20,9 @@ func main() {
 	database.Connect(connectionString)
 	database.Migrate()
 	defer database.Instance.Close()
+
+	interval := time.Minute * 7
+	samplesanalyses.StartSynchronize(interval)
 
 	router := initRouter()
 	router.Run(":8080")

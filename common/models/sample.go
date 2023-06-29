@@ -6,8 +6,8 @@ type SampleAnalysis struct {
 	Position *int    `json:"position"`
 	Deleted  *bool   `json:"deleted"`
 
-	CreatedBy string `json:"created_by"`
-	CreatedAt string `json:"created_at"`
+	CreatedBy *string `json:"created_by"`
+	CreatedAt string  `json:"created_at"`
 
 	Sample   Sample   `json:"sample"`
 	Analysis Analysis `json:"analysis"`
@@ -20,8 +20,8 @@ type Sample struct {
 	Comment    string `json:"comment"`
 	Birthdate  string `json:"birthdate"`
 
-	CreatedAt string `json:"created_at"`
-	CreatedBy string `json:"created_by"`
+	CreatedAt string  `json:"created_at"`
+	CreatedBy *string `json:"created_by"`
 }
 
 type Analysis struct {

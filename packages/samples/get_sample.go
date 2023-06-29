@@ -13,14 +13,14 @@ func FetchSampleInformationFromDatabase(sampleID string) (*models.Sample, error)
 	var sample models.Sample
 
 	query :=
-		`SELECT sample_id,samples.full_name,created_at,users.username,sputalysed,comment
+		`SELECT sample_id,samples.full_name,created_at,users.username,birthdate,sputalysed,comment
 		FROM samples 
 		LEFT JOIN users ON samples.created_by = users.user_id
 		WHERE sample_id = $1;`
 
 	row := database.Instance.QueryRow(query, sampleID)
 
-	if err := row.Scan(&sample.SampleID, &sample.FullName, &sample.CreatedAt, &sample.CreatedBy, &sample.Sputalysed, &sample.Comment); err != nil {
+	if err := row.Scan(&sample.SampleID, &sample.FullName, &sample.CreatedAt, &sample.CreatedBy, &sample.Birthdate, &sample.Sputalysed, &sample.Comment); err != nil {
 		return nil, err
 	}
 

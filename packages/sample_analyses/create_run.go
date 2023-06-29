@@ -233,7 +233,7 @@ func CreateRun(ctx *gin.Context) {
 			file.SetCellValue(
 				"Lauf",
 				fmt.Sprintf("B%d", idx+12),
-				fmt.Sprintf("%s, %s", exportDataElement.sample.SampleID, exportDataElement.sample.FullName),
+				fmt.Sprintf("%s, %s - %s", exportDataElement.sample.SampleID, exportDataElement.sample.FullName, exportDataElement.sample.Birthdate),
 			)
 			file.SetCellValue(
 				"Lauf",

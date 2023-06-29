@@ -40,7 +40,7 @@ func GetSamplesAnalyses(ctx *gin.Context) {
 			samplesanalyses.run IS NULL AND
 			samplesanalyses.device IS NULL AND
 			samplesanalyses.position IS NULL
-			ORDER BY samplesanalyses.created_at DESC;`
+			ORDER BY samplesanalyses.created_at DESC, samplesanalyses.sample_id DESC`
 	}
 	rows, err := database.Instance.Query(query, params...)
 

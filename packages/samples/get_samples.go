@@ -50,7 +50,7 @@ func GetSamples(ctx *gin.Context) {
 	} else {
 		query += `
 		created_at >= current_date - interval '14 day'
-		ORDER BY created_at DESC;
+		ORDER BY created_at DESC, sample_id DESC;
 		`
 	}
 

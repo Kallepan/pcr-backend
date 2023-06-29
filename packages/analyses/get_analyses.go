@@ -17,7 +17,7 @@ func FetchAnalysisInformationFromDatabase(analysisID string) (*models.Analysis, 
 		FROM analyses
 		WHERE analysis_id = $1;
 		`
-	err := database.Instance.QueryRow(query, analysisID).Scan(&analysis.AnalysisId, &analysis.AnalysisId, &analysis.ReadyMix, &analysis.IsActive)
+	err := database.Instance.QueryRow(query, analysisID).Scan(&analysis.AnalysisId, &analysis.ReadyMix, &analysis.IsActive)
 
 	if err != nil {
 		return nil, err

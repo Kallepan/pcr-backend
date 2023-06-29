@@ -137,8 +137,8 @@ func CreateRun(ctx *gin.Context) {
 		return
 	}
 	// Load template
-	templatePath := "/app/templates/v1.xlsm"
-
+	//templatePath := "/app/templates/v1.xlsm"
+	templatePath := "templates/v1.xlsm"
 	// Create copy of template
 	outputPath, err := createCopy(templatePath)
 
@@ -192,12 +192,13 @@ func CreateRun(ctx *gin.Context) {
 			// Append description --> last occurence of sample in a run
 			exportData = append(exportData, exportDataElement)
 		} else if postElement.ControlID != nil && postElement.Description != nil {
-			// Control
+			// Handle Controls
 			var exportDataElement ExportData
 			exportDataElement.Description = postElement.Description
 			exportDataElement.IsControl = true
 			exportData = append(exportData, exportDataElement)
 		} else {
+			// Invalid data
 			ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": fmt.Sprintf("%v is not valid data", postElement)})
 			tx.Rollback()
 			return

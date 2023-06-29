@@ -1,5 +1,5 @@
 -- Fill the analysis table with data
-INSERT INTO analyses (analysis_id, ready_mix, display_value) VALUES
+INSERT INTO analyses (analysis_id, ready_mix, display_name) VALUES
 ('CMVQPA',TRUE,''),
 ('CMVQPE',TRUE,''),
 ('CMVQPEP',TRUE,''),

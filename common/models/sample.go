@@ -25,7 +25,8 @@ type Sample struct {
 }
 
 type Analysis struct {
-	AnalysisId string `json:"analysis_id"`
+	AnalysisId  string `json:"analysis_id"`
+	DisplayName string `json:"display_name"`
 
 	ReadyMix bool `json:"ready_mix"`
 	IsActive bool `json:"is_active"`

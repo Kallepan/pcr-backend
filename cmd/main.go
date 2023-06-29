@@ -40,9 +40,19 @@ func initRouter() *gin.Engine {
 
 	v1 := router.Group("/api/v1")
 	{
+		// samples
 		v1.GET("/samples", samples.GetSamples)
+		v1.GET("/samples/:sample_id", samples.GetSamples)
+
+		// samples-analyses
+		v1.GET("/samples-analyses/:sample_id", samplesanalyses.GetSamplesAnalyses)
 		v1.GET("/samples-analyses", samplesanalyses.GetSamplesAnalyses)
-		v1.GET("/analyses", analyses.GetAllAnalyses)
+
+		// analyses
+		v1.GET("/analyses", analyses.GetAnalyses)
+		v1.GET("/analyses/:analysis_id", analyses.GetAnalyses)
+
+		// ping
 		v1.GET("/ping", controllers.Ping)
 	}
 

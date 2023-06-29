@@ -1,6 +1,7 @@
 CREATE TABLE IF NOT EXISTS analyses (
     analysis_id VARCHAR(20) PRIMARY KEY NOT NULL,
-
+    display_name VARCHAR(255) NOT NULL,
+    
     ready_mix BOOLEAN NOT NULL DEFAULT FALSE,
     is_active BOOLEAN NOT NULL DEFAULT TRUE
 );

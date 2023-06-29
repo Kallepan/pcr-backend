@@ -9,8 +9,9 @@ import (
 )
 
 type AddAnalysisRequest struct {
-	AnalysisId string `json:"analysis_id" binding:"required"`
-	ReadyMix   *bool  `json:"ready_mix"`
+	AnalysisId  string `json:"analysis_id" binding:"required"`
+	DisplayName string `json:"display_name" binding:"required"`
+	ReadyMix    *bool  `json:"ready_mix"`
 }
 
 func AddAnalysis(ctx *gin.Context) {
@@ -34,10 +35,10 @@ func AddAnalysis(ctx *gin.Context) {
 
 	// Insert analysis
 	query := `
-			INSERT INTO analyses (analysis_id, ready_mix) 
-			VALUES ($1,$2) 
-			RETURNING analysis_id;`
-	err := database.Instance.QueryRow(query, analysis.AnalysisId, analysis.ReadyMix).Scan(&analysis.AnalysisId)
+		INSERT INTO analyses (analysis_id, ready_mix, display_name) 
+		VALUES ($1,$2) 
+		RETURNING analysis_id;`
+	err := database.Instance.QueryRow(query, analysis.AnalysisId, analysis.ReadyMix, analysis.DisplayName).Scan(&analysis.AnalysisId)
 
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})

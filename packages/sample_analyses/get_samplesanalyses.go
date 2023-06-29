@@ -11,6 +11,10 @@ import (
 func GetSamplesAnalyses(ctx *gin.Context) {
 	var samplesAnalyses []models.SampleAnalysis
 
+	sample_id := ctx.Query("sample_id")
+
+	var params []interface{}
+
 	query := `
 		WITH sample_query AS (
 			SELECT samplesanalyses.sample_id, samples.full_name, samples.created_at, users.username AS created_by
@@ -24,15 +28,21 @@ func GetSamplesAnalyses(ctx *gin.Context) {
 		LEFT JOIN sample_query ON samplesanalyses.sample_id = sample_query.sample_id
 		LEFT JOIN analyses ON samplesanalyses.analysis_id = analyses.analysis_id
 		LEFT JOIN users ON samplesanalyses.created_by = users.user_id
-		WHERE 
+		WHERE
+			1 = 1 AND
+		`
+	if sample_id != "" {
+		query += "samplesanalyses.sample_id = ?"
+		params = append(params, sample_id)
+	} else {
+		query += `
 			samplesanalyses.deleted = false AND 
 			samplesanalyses.run IS NULL AND
 			samplesanalyses.device IS NULL AND
 			samplesanalyses.position IS NULL
-		ORDER BY samplesanalyses.created_at DESC LIMIT $1;
-	`
-
-	rows, err := database.Instance.Query(query, 100)
+			ORDER BY samplesanalyses.created_at DESC LIMIT 100;`
+	}
+	rows, err := database.Instance.Query(query, params...)
 
 	if err != nil {
 		ctx.AbortWithStatusJSON(500, gin.H{"message": err.Error()})

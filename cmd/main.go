@@ -10,8 +10,8 @@ import (
 	"gitlab.com/kaka/pcr-backend/common/middlewares"
 	"gitlab.com/kaka/pcr-backend/jwt"
 	"gitlab.com/kaka/pcr-backend/packages/panels"
-	samplesanalyses "gitlab.com/kaka/pcr-backend/packages/sample_analyses"
 	"gitlab.com/kaka/pcr-backend/packages/samples"
+	"gitlab.com/kaka/pcr-backend/packages/samplespanels"
 	"gitlab.com/kaka/pcr-backend/utils"
 )
 
@@ -24,7 +24,7 @@ func main() {
 	jwt.CreateAdminUser()
 
 	interval := time.Minute * 7
-	samplesanalyses.StartSynchronize(interval)
+	samplespanels.StartSynchronize(interval)
 
 	router := initRouter()
 	router.Run(":8080")
@@ -47,12 +47,12 @@ func initRouter() *gin.Engine {
 	v1 := router.Group("/api/v1")
 	{
 		// samples
-		v1.GET("/samples", samples.GetSamples)
 		v1.GET("/samples/:sample_id", samples.GetSamples)
+		v1.GET("/samples", samples.GetSamples)
 
-		// samples-analyses
-		v1.GET("/samples-analyses/:sample_id", samplesanalyses.GetSamplesAnalyses)
-		v1.GET("/samples-analyses", samplesanalyses.GetSamplesAnalyses)
+		// samples-panels
+		v1.GET("/samples-panels/:sample_id", samplespanels.GetSamplesPanels)
+		v1.GET("/samples-panels", samplespanels.GetSamplesPanels)
 
 		// analyses
 		v1.GET("/panels", panels.GetPanels)
@@ -66,7 +66,7 @@ func initRouter() *gin.Engine {
 	secured.Use(middlewares.AuthMiddleware())
 	{
 		samples.RegisterRoutes(secured.Group("/samples"))
-		samplesanalyses.RegisterRoutes(secured.Group("/samples-analyses"))
+		samplespanels.RegisterRoutes(secured.Group("/samples-panels"))
 	}
 
 	return router

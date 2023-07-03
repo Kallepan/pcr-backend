@@ -32,7 +32,7 @@ func AddSample(ctx *gin.Context) {
 		SampleId:   request.SampleId,
 		FullName:   request.FullName,
 		Sputalysed: sputalysed,
-		Comment:    request.Comment,
+		Comment:    &request.Comment,
 		Birthdate:  request.Birthdate,
 	}
 

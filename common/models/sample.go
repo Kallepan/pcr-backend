@@ -10,16 +10,16 @@ type SampleAnalysis struct {
 	CreatedBy string `json:"created_by"`
 	CreatedAt string `json:"created_at"`
 
-	Sample   Sample `json:"sample"`
-	Analysis Panel  `json:"panel"`
+	Sample Sample `json:"sample"`
+	Panel  Panel  `json:"panel"`
 }
 
 type Sample struct {
-	SampleId   string `json:"sample_id"`
-	FullName   string `json:"full_name"`
-	Sputalysed bool   `json:"sputalysed"`
-	Comment    string `json:"comment"`
-	Birthdate  string `json:"birthdate"`
+	SampleId   string  `json:"sample_id"`
+	FullName   string  `json:"full_name"`
+	Sputalysed bool    `json:"sputalysed"`
+	Comment    *string `json:"comment"`
+	Birthdate  string  `json:"birthdate"`
 
 	CreatedAt string  `json:"created_at"`
 	CreatedBy *string `json:"created_by"`

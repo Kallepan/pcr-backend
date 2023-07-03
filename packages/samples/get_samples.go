@@ -31,7 +31,7 @@ func FetchSampleInformationFromDatabase(sampleID string) (*models.Sample, error)
 func GetSamples(ctx *gin.Context) {
 	var samples []models.Sample
 
-	sample_id := ctx.Query("sample_id")
+	sample_id := ctx.Param("sample_id")
 
 	var params []interface{}
 
@@ -39,20 +39,19 @@ func GetSamples(ctx *gin.Context) {
 		SELECT sample_id,samples.full_name,birthdate,sputalysed,comment,created_at,users.username
 		FROM samples
 		LEFT JOIN users ON samples.created_by = users.user_id
-		WHERE 1 = 1 AND
-		`
+		WHERE 1 = 1
+	`
 
 	if sample_id != "" {
 		query += `
-			sample_id = ?
+			AND sample_id = $1
 		`
 		params = append(params, sample_id)
-	} else {
-		query += `
-		created_at >= current_date - interval '14 day'
-		ORDER BY created_at DESC, sample_id DESC;
-		`
 	}
+	query += `
+		AND created_at >= current_date - interval '14 day'
+		ORDER BY created_at DESC, sample_id DESC;
+	`
 
 	rows, err := database.Instance.Query(query, params...)
 

@@ -4,17 +4,18 @@ type SampleAnalysis struct {
 	Run      *string `json:"run"`
 	Device   *string `json:"device"`
 	Position *int    `json:"position"`
+	RunDate  *string `json:"run_date"`
 	Deleted  *bool   `json:"deleted"`
 
-	CreatedBy *string `json:"created_by"`
-	CreatedAt string  `json:"created_at"`
+	CreatedBy string `json:"created_by"`
+	CreatedAt string `json:"created_at"`
 
-	Sample   Sample   `json:"sample"`
-	Analysis Analysis `json:"analysis"`
+	Sample   Sample `json:"sample"`
+	Analysis Panel  `json:"panel"`
 }
 
 type Sample struct {
-	SampleID   string `json:"sample_id"`
+	SampleId   string `json:"sample_id"`
 	FullName   string `json:"full_name"`
 	Sputalysed bool   `json:"sputalysed"`
 	Comment    string `json:"comment"`
@@ -24,10 +25,8 @@ type Sample struct {
 	CreatedBy *string `json:"created_by"`
 }
 
-type Analysis struct {
-	AnalysisId  string `json:"analysis_id"`
+type Panel struct {
+	PanelId     string `json:"panel_id"`
 	DisplayName string `json:"display_name"`
-
-	ReadyMix bool `json:"ready_mix"`
-	IsActive bool `json:"is_active"`
+	ReadyMix    *bool  `json:"ready_mix"`
 }

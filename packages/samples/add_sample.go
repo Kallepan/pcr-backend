@@ -10,7 +10,7 @@ import (
 )
 
 type AddSampleRequest struct {
-	SampleID   string `json:"sample_id" binding:"required"`
+	SampleId   string `json:"sample_id" binding:"required"`
 	FullName   string `json:"full_name" binding:"required"`
 	Sputalysed bool   `json:"sputalysed"`
 	Comment    string `json:"comment,omitempty"`
@@ -29,7 +29,7 @@ func AddSample(ctx *gin.Context) {
 	sputalysed := request.Sputalysed || false
 
 	sample := models.Sample{
-		SampleID:   request.SampleID,
+		SampleId:   request.SampleId,
 		FullName:   request.FullName,
 		Sputalysed: sputalysed,
 		Comment:    request.Comment,
@@ -37,8 +37,8 @@ func AddSample(ctx *gin.Context) {
 	}
 
 	// Check if sample already exists
-	if SampleExists(sample.SampleID) {
-		error_message := fmt.Sprintf("Sample %s already exists", sample.SampleID)
+	if SampleExists(sample.SampleId) {
+		error_message := fmt.Sprintf("Sample %s already exists", sample.SampleId)
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": error_message})
 		return
 	}
@@ -52,7 +52,7 @@ func AddSample(ctx *gin.Context) {
 			SELECT created_at, users.username
 			FROM new_sample
 			LEFT JOIN users ON new_sample.created_by = users.user_id`
-	err := database.Instance.QueryRow(query, sample.SampleID, sample.FullName, sample.Sputalysed, sample.Comment, sample.Birthdate, user_id).Scan(&sample.CreatedAt, &sample.CreatedBy)
+	err := database.Instance.QueryRow(query, sample.SampleId, sample.FullName, sample.Sputalysed, sample.Comment, sample.Birthdate, user_id).Scan(&sample.CreatedAt, &sample.CreatedBy)
 
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})

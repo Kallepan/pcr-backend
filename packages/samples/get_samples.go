@@ -19,7 +19,7 @@ func FetchSampleInformationFromDatabase(sampleID string) (*models.Sample, error)
 
 	row := database.Instance.QueryRow(query, sampleID)
 
-	if err := row.Scan(&sample.SampleID, &sample.FullName, &sample.CreatedAt, &sample.CreatedBy, &sample.Birthdate, &sample.Sputalysed, &sample.Comment); err != nil {
+	if err := row.Scan(&sample.SampleId, &sample.FullName, &sample.CreatedAt, &sample.CreatedBy, &sample.Birthdate, &sample.Sputalysed, &sample.Comment); err != nil {
 		return nil, err
 	}
 
@@ -63,7 +63,7 @@ func GetSamples(ctx *gin.Context) {
 
 	for rows.Next() {
 		var sample models.Sample
-		if err := rows.Scan(&sample.SampleID, &sample.FullName, &sample.Birthdate, &sample.Sputalysed, &sample.Comment, &sample.CreatedAt, &sample.CreatedBy); err != nil {
+		if err := rows.Scan(&sample.SampleId, &sample.FullName, &sample.Birthdate, &sample.Sputalysed, &sample.Comment, &sample.CreatedAt, &sample.CreatedBy); err != nil {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 			return
 		}

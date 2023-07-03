@@ -41,7 +41,7 @@ func UpdateSample(ctx *gin.Context) {
 
 	var sample models.Sample
 
-	switch err := result.Scan(&sample.SampleID, &sample.FullName, &sample.CreatedAt, &sample.Sputalysed, &sample.Comment, &sample.CreatedBy); err {
+	switch err := result.Scan(&sample.SampleId, &sample.FullName, &sample.CreatedAt, &sample.Sputalysed, &sample.Comment, &sample.CreatedBy); err {
 	case nil:
 		break
 	default:

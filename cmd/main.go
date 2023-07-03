@@ -9,7 +9,7 @@ import (
 	"gitlab.com/kaka/pcr-backend/common/database"
 	"gitlab.com/kaka/pcr-backend/common/middlewares"
 	"gitlab.com/kaka/pcr-backend/jwt"
-	"gitlab.com/kaka/pcr-backend/packages/analyses"
+	"gitlab.com/kaka/pcr-backend/packages/panels"
 	samplesanalyses "gitlab.com/kaka/pcr-backend/packages/sample_analyses"
 	"gitlab.com/kaka/pcr-backend/packages/samples"
 	"gitlab.com/kaka/pcr-backend/utils"
@@ -55,8 +55,8 @@ func initRouter() *gin.Engine {
 		v1.GET("/samples-analyses", samplesanalyses.GetSamplesAnalyses)
 
 		// analyses
-		v1.GET("/analyses", analyses.GetAnalyses)
-		v1.GET("/analyses/:analysis_id", analyses.GetAnalyses)
+		v1.GET("/panels", panels.GetPanels)
+		v1.GET("/panels/:panel_id", panels.GetPanels)
 
 		// ping
 		v1.GET("/ping", controllers.Ping)
@@ -66,7 +66,6 @@ func initRouter() *gin.Engine {
 	secured.Use(middlewares.AuthMiddleware())
 	{
 		samples.RegisterRoutes(secured.Group("/samples"))
-		analyses.RegisterRoutes(secured.Group("/analyses"))
 		samplesanalyses.RegisterRoutes(secured.Group("/samples-analyses"))
 	}
 

@@ -21,6 +21,8 @@ func main() {
 	database.Migrate()
 	defer database.Instance.Close()
 
+	jwt.CreateAdminUser()
+
 	interval := time.Minute * 7
 	samplesanalyses.StartSynchronize(interval)
 

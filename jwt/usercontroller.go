@@ -2,7 +2,9 @@ package jwt
 
 import (
 	"fmt"
+	"log"
 	"net/http"
+	"os"
 
 	"github.com/gin-gonic/gin"
 	"gitlab.com/kaka/pcr-backend/common/database"
@@ -26,6 +28,34 @@ func CheckIfUserExists(username string) bool {
 	return exists
 }
 
+func CreateAdminUser() {
+	var user models.User
+
+	user.Email = os.Getenv("ADMIN_EMAIL")
+	user.FirstName = "admin"
+	user.LastName = "admin"
+	user.Username = os.Getenv("ADMIN_USERNAME")
+	user.Password = os.Getenv("ADMIN_PASSWORD")
+
+	if CheckIfUserExists(user.Username) {
+		log.Println("Admin user already exists")
+		return
+	}
+
+	if err := user.HashPassword(); err != nil {
+		panic(err)
+	}
+
+	query := "INSERT INTO users (email, firstname, lastname, username, password) VALUES ($1, $2, $3, $4, $5) RETURNING user_id"
+	err := database.Instance.QueryRow(query, &user.Email, &user.FirstName, &user.LastName, &user.Username, &user.Password).Scan(&user.UserId)
+
+	if err != nil {
+		panic(err)
+	}
+
+	log.Println("Admin user created")
+}
+
 func RegisterUser(context *gin.Context) {
 	// Validate the input from user, hash password and send 201 status code
 
@@ -42,7 +72,7 @@ func RegisterUser(context *gin.Context) {
 		return
 	}
 
-	if err := user.HashPassword(user.Password); err != nil {
+	if err := user.HashPassword(); err != nil {
 		context.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}

@@ -11,4 +11,6 @@ INSERT INTO ingenious (orderId, barcode, usi, patient, birthdate) VALUES ('12320
 INSERT INTO ingenious (orderId, barcode, usi, patient, birthdate) VALUES ('1232088719', '123208871903', 'MYPPA', 'Jane Doe', '1990-01-01');
 INSERT INTO ingenious (orderId, barcode, usi, patient, birthdate) VALUES ('1232088720', '123208872003', 'CHLAPPA', 'John2 Doe', '1990-01-01');
 INSERT INTO ingenious (orderId, barcode, usi, patient, birthdate) VALUES ('1232088721', '123208872103', 'MYPPA', 'Jane1 Doe', '1990-01-01');
-INSERT INTO ingenious (orderId, barcode, usi, patient, birthdate) VALUES ('1232088722', '123208872203', 'CHLAPPA', 'John2 Doe', '1990-01-01');
+INSERT INTO ingenious (orderId, barcode, usi, patient, birthdate) VALUES ('1232088722', '123208872303', 'TEST1', 'John2 Doe', '1990-01-01');
+INSERT INTO ingenious (orderId, barcode, usi, patient, birthdate) VALUES ('1232088723', '123208872303', 'TEST2', 'John2 Doe', '1990-01-01');
+INSERT INTO ingenious (orderId, barcode, usi, patient, birthdate) VALUES ('1232088723', '123208872303', 'CHLAPPA', 'John2 Doe', '1990-01-01');

@@ -13,8 +13,8 @@ type User struct {
 	UserId    string `json:"user_id"`
 }
 
-func (user *User) HashPassword(password string) error {
-	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+func (user *User) HashPassword() error {
+	bytes, err := bcrypt.GenerateFromPassword([]byte(user.Password), 14)
 	if err != nil {
 		return err
 	}

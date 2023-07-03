@@ -1,4 +1,4 @@
-package samplesanalyses
+package samplespanels
 
 import (
 	"database/sql"
@@ -12,13 +12,13 @@ import (
 	"github.com/xuri/excelize/v2"
 	"gitlab.com/kaka/pcr-backend/common/database"
 	"gitlab.com/kaka/pcr-backend/common/models"
-	"gitlab.com/kaka/pcr-backend/packages/analyses"
+	"gitlab.com/kaka/pcr-backend/packages/panels"
 	"gitlab.com/kaka/pcr-backend/packages/samples"
 )
 
 type PostElementData struct {
-	SampleID    *string `json:"sample_id" binding:"required"`
-	AnalysisId  *string `json:"analysis_id" binding:"required"`
+	SampleId    *string `json:"sample_id" binding:"required"`
+	PanelId     *string `json:"panel_id" binding:"required"`
 	ControlID   *string `json:"control_id" binding:"required"`
 	Description *string `json:"description" binding:"required"`
 }
@@ -33,7 +33,7 @@ type ExportData struct {
 	// Sample info
 	sample *models.Sample
 	// Analysis info
-	analysis *models.Analysis
+	panel *models.Panel
 	// Control info
 	Description *string
 
@@ -65,54 +65,54 @@ func createCopy(templatePath string) (string, error) {
 	return outputPath, nil
 }
 
-func UpdateSampleAnalysisInDatabase(sampleID string, analysisID string, run string, device string) error {
+func UpdateSampleAnalysisInDatabase(sampleId string, panelId string, run string, device string) error {
 	query := `
-		UPDATE samplesanalyses
+		UPDATE samplespanels
 		SET
 			run = $1,
 			device = $2
 		WHERE
 			sample_id = $3 AND
-			analysis_id = $4;
+			panel_id = $4;
 		`
 
-	_, err := database.Instance.Exec(query, run, device, sampleID, analysisID)
+	_, err := database.Instance.Exec(query, run, device, sampleId, panelId)
 	return err
 }
 
-func GetPositionForSampleAnalysis(tx *sql.Tx, sampleID string, analysisID string) (*int, error) {
+func GetPositionForSampleAnalysis(tx *sql.Tx, sampleId string, panelId string) (*int, error) {
 	// Fetch position for sample analysis
 	var position int
 	if err := tx.QueryRow(`
 		SELECT position 
-		FROM samplesanalyses 
+		FROM samplespanels 
 		WHERE 
 			sample_id = $1 AND
-			analysis_id = $2
-		`, sampleID, analysisID).Scan(&position); err != nil {
+			panel_id = $2
+		`, sampleId, panelId).Scan(&position); err != nil {
 		return nil, err
 	}
 
 	return &position, nil
 }
 
-func CheckIfSampleAnalysisIsInRun(sampleID string, analysisID string) error {
+func CheckIfSampleAnalysisIsInRun(sampleId string, panelId string) error {
 	query := `
 		SELECT *
-		FROM samplesanalyses
+		FROM samplespanels
 		WHERE
 			sample_id = $1 AND
-			analysis_id = $2 AND (
+			panel_id = $2 AND (
 				run IS NOT NULL AND
 				device IS NOT NULL
 			)
 	`
-	err := database.Instance.QueryRow(query, sampleID, analysisID).Scan()
+	err := database.Instance.QueryRow(query, sampleId, panelId).Scan()
 	switch err {
 	case sql.ErrNoRows:
 		return nil
 	default:
-		return fmt.Errorf("sample analysis was already used")
+		return fmt.Errorf("sample panel combination is already present")
 	}
 }
 
@@ -161,12 +161,12 @@ func CreateRun(ctx *gin.Context) {
 	var exportData []ExportData
 	// Validate data in a separate loop to avoid partial data being inserted
 	for _, postElement := range request.PostElements {
-		if postElement.SampleID != nil && postElement.AnalysisId != nil {
+		if postElement.SampleId != nil && postElement.PanelId != nil {
 			// SampleAnalysis
 			// Check if SampleAnalysis was already used
-			err := CheckIfSampleAnalysisIsInRun(*postElement.SampleID, *postElement.AnalysisId)
+			err := CheckIfSampleAnalysisIsInRun(*postElement.SampleId, *postElement.PanelId)
 			if err != nil {
-				ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": fmt.Sprintf("Sample: %s, Analysis: %s was already used", *postElement.SampleID, *postElement.AnalysisId)})
+				ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": fmt.Sprintf("Sample: %s, Panel/Analysis: %s was already used", *postElement.SampleId, *postElement.PanelId)})
 				return
 			}
 
@@ -174,20 +174,20 @@ func CreateRun(ctx *gin.Context) {
 			var exportDataElement ExportData
 
 			// Fetch data from database
-			sample, err := samples.FetchSampleInformationFromDatabase(*postElement.SampleID)
+			sample, err := samples.FetchSampleInformationFromDatabase(*postElement.SampleId)
 			if err != nil {
 				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 				tx.Rollback()
 				return
 			}
-			analysis, err := analyses.FetchAnalysisInformationFromDatabase(*postElement.AnalysisId)
+			panel, err := panels.FetchPanelInformationFromDatabase(*postElement.PanelId)
 			if err != nil {
 				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 				tx.Rollback()
 				return
 			}
 			exportDataElement.sample = sample
-			exportDataElement.analysis = analysis
+			exportDataElement.panel = panel
 			exportDataElement.IsControl = false
 			// Append description --> last occurence of sample in a run
 			exportData = append(exportData, exportDataElement)
@@ -210,14 +210,14 @@ func CreateRun(ctx *gin.Context) {
 		if !exportDataElement.IsControl {
 			// SampleAnalysis
 			// Insert data into database -> position is auto incremented in the database
-			if err := UpdateSampleAnalysisInDatabase(exportDataElement.sample.SampleID, exportDataElement.analysis.AnalysisId, request.Run, request.Device); err != nil {
+			if err := UpdateSampleAnalysisInDatabase(exportDataElement.sample.SampleId, exportDataElement.panel.PanelId, request.Run, request.Device); err != nil {
 				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 				tx.Rollback()
 				return
 			}
 
 			// Get position from database
-			position, err := GetPositionForSampleAnalysis(tx, exportDataElement.sample.SampleID, exportDataElement.analysis.AnalysisId)
+			position, err := GetPositionForSampleAnalysis(tx, exportDataElement.sample.SampleId, exportDataElement.panel.PanelId)
 			if err != nil {
 				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 				tx.Rollback()
@@ -233,12 +233,12 @@ func CreateRun(ctx *gin.Context) {
 			file.SetCellValue(
 				"Lauf",
 				fmt.Sprintf("B%d", idx+12),
-				fmt.Sprintf("%s, %s - %s", exportDataElement.sample.SampleID, exportDataElement.sample.FullName, exportDataElement.sample.Birthdate),
+				fmt.Sprintf("%s, %s - %s", exportDataElement.sample.SampleId, exportDataElement.sample.FullName, exportDataElement.sample.Birthdate),
 			)
 			file.SetCellValue(
 				"Lauf",
 				fmt.Sprintf("C%d", idx+12),
-				exportDataElement.analysis.AnalysisId,
+				exportDataElement.panel.DisplayName,
 			)
 			file.SetCellValue(
 				"Lauf",

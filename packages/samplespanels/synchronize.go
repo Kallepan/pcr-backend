@@ -1,7 +1,7 @@
 /*
 Synchronizes the ingenious table with the sampleanalyses and samples table
 */
-package samplesanalyses
+package samplespanels
 
 import (
 	"log"

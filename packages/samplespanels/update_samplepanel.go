@@ -1,4 +1,4 @@
-package samplesanalyses
+package samplespanels
 
 import (
 	"net/http"
@@ -11,7 +11,7 @@ type UpdateSampleAnalysisRequest struct {
 	Deleted *bool `json:"deleted" binding:"required"`
 }
 
-func UpdateSampleAnalysis(ctx *gin.Context) {
+func UpdateSamplePanel(ctx *gin.Context) {
 	sample_id := ctx.Param("sample_id")
 	analysis_id := ctx.Param("analysis_id")
 

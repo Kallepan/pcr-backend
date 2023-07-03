@@ -10,9 +10,9 @@ import (
 )
 
 type UpdateSampleRequest struct {
-	FullName   string `json:"full_name" binding:"required"`
-	Sputalysed *bool  `json:"sputalysed" binding:"required"`
-	Comment    string `json:"comment,omitempty"`
+	FullName   *string `json:"full_name,omitempty"`
+	Sputalysed *bool   `json:"sputalysed,omitempty"`
+	Comment    *string `json:"comment,omitempty"`
 }
 
 func UpdateSample(ctx *gin.Context) {
@@ -33,7 +33,7 @@ func UpdateSample(ctx *gin.Context) {
 
 	query := `
 		WITH updated_sample as (UPDATE samples SET full_name = $1, sputalysed = $2, comment = $3 WHERE sample_id = $4 returning *) 
-		SELECT sample_id, updated_sample.full_name, updated_sample.created_at, updated_sample.sputalysed, updated_sample.comment, users.username 
+		SELECT sample_id, updated_sample.full_name, updated_sample.created_at, updated_sample.sputalysed, updated_sample.comment, updated_sample.birthdate, users.username 
 		FROM updated_sample 
 		LEFT JOIN users ON updated_sample.created_by = users.user_id;`
 
@@ -41,12 +41,16 @@ func UpdateSample(ctx *gin.Context) {
 
 	var sample models.Sample
 
-	switch err := result.Scan(&sample.SampleId, &sample.FullName, &sample.CreatedAt, &sample.Sputalysed, &sample.Comment, &sample.CreatedBy); err {
+	switch err := result.Scan(&sample.SampleId, &sample.FullName, &sample.CreatedAt, &sample.Sputalysed, &sample.Comment, &sample.Birthdate, &sample.CreatedBy); err {
 	case nil:
 		break
 	default:
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
+
+	// Format date
+	sample.Birthdate = sample.Birthdate[:10]
+
 	ctx.JSON(http.StatusOK, &sample)
 }

@@ -51,8 +51,8 @@ func initRouter() *gin.Engine {
 		v1.GET("/samples", samples.GetSamples)
 
 		// samples-panels
-		v1.GET("/samples-panels/:sample_id", samplespanels.GetSamplesPanels)
-		v1.GET("/samples-panels", samplespanels.GetSamplesPanels)
+		v1.GET("/samplespanels/:sample_id", samplespanels.GetSamplesPanels)
+		v1.GET("/samplespanels", samplespanels.GetSamplesPanels)
 
 		// analyses
 		v1.GET("/panels", panels.GetPanels)
@@ -66,7 +66,7 @@ func initRouter() *gin.Engine {
 	secured.Use(middlewares.AuthMiddleware())
 	{
 		samples.RegisterRoutes(secured.Group("/samples"))
-		samplespanels.RegisterRoutes(secured.Group("/samples-panels"))
+		samplespanels.RegisterRoutes(secured.Group("/samplespanels"))
 	}
 
 	return router

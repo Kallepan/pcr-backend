@@ -20,7 +20,7 @@ CREATE TABLE IF NOT EXISTS samplespanels (
     position INTEGER DEFAULT NULL,
     run_date DATE DEFAULT NULL,
 
-    deleted BOOLEAN DEFAULT FALSE, -- Keep track of wether the sample-analysis pair was "deleted"
+    deleted BOOLEAN NOT NULL DEFAULT FALSE, -- Keep track of wether the sample-analysis pair was "deleted"
 
     created_by UUID REFERENCES users(user_id) ON UPDATE CASCADE ON DELETE SET NULL,
     created_at TIMESTAMP with time zone DEFAULT CURRENT_TIMESTAMP,

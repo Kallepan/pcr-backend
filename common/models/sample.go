@@ -5,7 +5,6 @@ type SampleAnalysis struct {
 	Device   *string `json:"device"`
 	Position *int    `json:"position"`
 	RunDate  *string `json:"run_date"`
-	Deleted  *bool   `json:"deleted"`
 
 	CreatedBy string `json:"created_by"`
 	CreatedAt string `json:"created_at"`

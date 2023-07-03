@@ -17,16 +17,15 @@ func GetPanels(ctx *gin.Context) {
 	query := `
 		SELECT panel_id, display_name, ready_mix
 		FROM panels
-		WHERE is_active = 1
+		WHERE is_active = TRUE
 	`
 	// Add pagination and filters
 	var params []interface{}
 	if panel_id != "" {
-		query += "AND panel_id = ?"
+		query += "AND panel_id = $1"
 		params = append(params, panel_id)
-	} else {
-		query += "ORDER BY display_name LIMIT 100;"
 	}
+	query += " ORDER BY display_name LIMIT 100;"
 
 	// query
 	rows, err := database.Instance.QueryContext(ctx, query, params...)

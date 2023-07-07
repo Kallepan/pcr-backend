@@ -6,6 +6,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"sync"
 	"time"
 
 	"github.com/gin-gonic/gin"
@@ -65,7 +66,7 @@ func createCopy(templatePath string) (string, error) {
 	return outputPath, nil
 }
 
-func UpdateSampleAnalysisInDatabase(sampleId string, panelId string, run string, device string) error {
+func UpdateSampleAnalysisInDatabase(tx *sql.Tx, sampleId string, panelId string, run string, device string) error {
 	query := `
 		UPDATE samplespanels
 		SET
@@ -76,7 +77,7 @@ func UpdateSampleAnalysisInDatabase(sampleId string, panelId string, run string,
 			panel_id = $4;
 		`
 
-	_, err := database.Instance.Exec(query, run, device, sampleId, panelId)
+	_, err := tx.Exec(query, run, device, sampleId, panelId)
 	return err
 }
 
@@ -116,7 +117,11 @@ func CheckIfSampleAnalysisIsInRun(sampleId string, panelId string) error {
 	}
 }
 
+var createRunLock sync.Mutex
+
 func CreateRun(ctx *gin.Context) {
+	createRunLock.Lock()
+	defer createRunLock.Unlock()
 	// Create transaction to rollback if something goes wrong
 	tx, err := database.Instance.Begin()
 	if err != nil {
@@ -136,7 +141,7 @@ func CreateRun(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
-	// Load template
+	// Load template TODO: move to config
 	//templatePath := "/app/templates/v1.xlsm"
 	templatePath := "templates/v1.xlsm"
 	// Create copy of template
@@ -167,6 +172,7 @@ func CreateRun(ctx *gin.Context) {
 			err := CheckIfSampleAnalysisIsInRun(*postElement.SampleId, *postElement.PanelId)
 			if err != nil {
 				ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": fmt.Sprintf("Sample: %s, Panel/Analysis: %s was already used", *postElement.SampleId, *postElement.PanelId)})
+				tx.Rollback()
 				return
 			}
 
@@ -210,7 +216,7 @@ func CreateRun(ctx *gin.Context) {
 		if !exportDataElement.IsControl {
 			// SampleAnalysis
 			// Insert data into database -> position is auto incremented in the database
-			if err := UpdateSampleAnalysisInDatabase(exportDataElement.sample.SampleId, exportDataElement.panel.PanelId, request.Run, request.Device); err != nil {
+			if err := UpdateSampleAnalysisInDatabase(tx, exportDataElement.sample.SampleId, exportDataElement.panel.PanelId, request.Run, request.Device); err != nil {
 				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 				tx.Rollback()
 				return
@@ -240,11 +246,15 @@ func CreateRun(ctx *gin.Context) {
 				fmt.Sprintf("C%d", idx+12),
 				exportDataElement.panel.DisplayName,
 			)
-			file.SetCellValue(
-				"Lauf",
-				fmt.Sprintf("E%d", idx+12),
-				exportDataElement.sample.Comment,
-			)
+			// Check if comment is not nil
+			if exportDataElement.sample.Comment != nil {
+				file.SetCellValue(
+					"Lauf",
+					fmt.Sprintf("D%d", idx+12),
+					*exportDataElement.sample.Comment,
+				)
+			}
+			// Check if sample is sputalysed
 			if exportDataElement.sample.Sputalysed {
 				file.SetCellValue(
 					"Lauf",

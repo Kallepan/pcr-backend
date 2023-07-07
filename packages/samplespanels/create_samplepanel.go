@@ -13,7 +13,7 @@ import (
 
 type AddAnalysisToSampleRequest struct {
 	SampleId string `json:"sample_id" binding:"required"`
-	PanelId  string `json:"analysis_id" binding:"required"`
+	PanelId  string `json:"panel_id" binding:"required"`
 }
 
 func AddAnalysisToSample(ctx *gin.Context) {
@@ -41,9 +41,9 @@ func AddAnalysisToSample(ctx *gin.Context) {
 	}
 
 	// Check if sample analysis already exists
-	if SampleAnalysisExists(body.SampleId, body.PanelId) {
+	if SamplePanelExists(body.SampleId, body.PanelId) {
 		// Sample already exists, update deleted status and return 200
-		err := UpdateSampleAnalysisDeletedStatus(body.SampleId, body.PanelId, false)
+		err := UpdateSamplePanelDeletedStatus(body.SampleId, body.PanelId, false)
 		if err != nil {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		}
@@ -61,7 +61,7 @@ func AddAnalysisToSample(ctx *gin.Context) {
 	// Run query
 	query := `
 		WITH sample_query AS (
-			SELECT samples.sample_id, samples.full_name, samples.created_at, samples.created_by, samples.sputalysed, users.username AS created_by
+			SELECT samples.sample_id, samples.full_name, samples.created_at, samples.sputalysed, users.username AS created_by
 			FROM samples
 			LEFT JOIN users ON samples.created_by = users.user_id
 			WHERE samples.sample_id = $1
@@ -71,11 +71,11 @@ func AddAnalysisToSample(ctx *gin.Context) {
 			VALUES ($1, $2, $3)
 			RETURNING sample_id, panel_id, created_at, created_by
 		)
-			SELECT new_sample_analysis.created_at, users.username, panels.panel_id, panels.ready_mix, sample_query.full_name, sample_query.sputalysed, sample_query.created_at, sample_query.created_by
-			FROM new_sample_analysis
-			LEFT JOIN sample_query ON new_sample_analysis.sample_id = sample_query.sample_id
-			LEFT JOIN users ON new_sample_analysis.created_by = users.user_id
-			LEFT JOIN analyses ON new_sample_analysis.panel_id = panels.panel_id
+			SELECT sample_panel.created_at, users.username, panels.panel_id, panels.ready_mix, sample_query.full_name, sample_query.sputalysed, sample_query.created_at, sample_query.created_by
+			FROM sample_panel
+			LEFT JOIN sample_query ON sample_panel.sample_id = sample_query.sample_id
+			LEFT JOIN users ON sample_panel.created_by = users.user_id
+			LEFT JOIN panels ON sample_panel.panel_id = panels.panel_id
 		`
 	err := database.Instance.QueryRow(
 		query,

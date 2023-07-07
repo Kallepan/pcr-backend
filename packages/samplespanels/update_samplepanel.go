@@ -1,6 +1,7 @@
 package samplespanels
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -13,8 +14,7 @@ type UpdateSampleAnalysisRequest struct {
 
 func UpdateSamplePanel(ctx *gin.Context) {
 	sample_id := ctx.Param("sample_id")
-	analysis_id := ctx.Param("analysis_id")
-
+	panel_id := ctx.Param("panel_id")
 	body := UpdateSampleAnalysisRequest{}
 
 	if err := ctx.ShouldBindJSON(&body); err != nil {
@@ -23,18 +23,18 @@ func UpdateSamplePanel(ctx *gin.Context) {
 	}
 
 	// Check if sample_analysis exists
-	if !SampleAnalysisExists(sample_id, analysis_id) {
-		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": "sample analysis not found"})
+	if !SamplePanelExists(sample_id, panel_id) {
+		ctx.AbortWithStatusJSON(http.StatusNotFound, gin.H{"message": fmt.Sprintf("SamplePanel with sample_id %s and panel_id %s not found", sample_id, panel_id)})
 		return
 	}
 
 	// Run query
 	query := `
-		UPDATE samplesanalyses
+		UPDATE samplespanels
 		SET deleted = $3
-		WHERE sample_id = $1 AND analysis_id = $2;
+		WHERE sample_id = $1 AND panel_id = $2;
 	`
-	_, err := database.Instance.Exec(query, sample_id, analysis_id, *body.Deleted)
+	_, err := database.Instance.Exec(query, sample_id, panel_id, *body.Deleted)
 
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
@@ -43,11 +43,11 @@ func UpdateSamplePanel(ctx *gin.Context) {
 	ctx.Status(http.StatusOK)
 }
 
-func UpdateSampleAnalysisDeletedStatus(sample_id string, analysis_id string, deleted bool) error {
+func UpdateSamplePanelDeletedStatus(sample_id string, analysis_id string, deleted bool) error {
 	query := `
-		UPDATE samplesanalyses
+		UPDATE samplespanels
 		SET deleted = $3
-		WHERE sample_id = $1 AND analysis_id = $2;
+		WHERE sample_id = $1 AND panel_id = $2;
 	`
 	_, err := database.Instance.Exec(query, sample_id, analysis_id, deleted)
 

@@ -7,7 +7,7 @@ import (
 	"gitlab.com/kaka/pcr-backend/common/database"
 )
 
-func SampleAnalysisExists(sample_id string, analysis_id string) bool {
+func SamplePanelExists(sample_id string, analysis_id string) bool {
 	query := `
 		SELECT EXISTS(
 			SELECT sample_id

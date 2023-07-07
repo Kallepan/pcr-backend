@@ -15,6 +15,7 @@ import (
 	"gitlab.com/kaka/pcr-backend/common/models"
 	"gitlab.com/kaka/pcr-backend/packages/panels"
 	"gitlab.com/kaka/pcr-backend/packages/samples"
+	"gitlab.com/kaka/pcr-backend/utils"
 )
 
 type PostElementData struct {
@@ -142,8 +143,8 @@ func CreateRun(ctx *gin.Context) {
 		return
 	}
 	// Load template TODO: move to config
-	//templatePath := "/app/templates/v1.xlsm"
-	templatePath := "templates/v1.xlsm"
+	templatePath := utils.GetValueFromEnv("TEMPLATE_PATH", "/app/templates/v1.xlsm")
+
 	// Create copy of template
 	outputPath, err := createCopy(templatePath)
 

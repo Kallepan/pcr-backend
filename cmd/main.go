@@ -10,6 +10,7 @@ import (
 	"gitlab.com/kaka/pcr-backend/common/middlewares"
 	"gitlab.com/kaka/pcr-backend/jwt"
 	"gitlab.com/kaka/pcr-backend/packages/panels"
+	"gitlab.com/kaka/pcr-backend/packages/printer"
 	"gitlab.com/kaka/pcr-backend/packages/samples"
 	"gitlab.com/kaka/pcr-backend/packages/samplespanels"
 	"gitlab.com/kaka/pcr-backend/utils"
@@ -67,6 +68,7 @@ func initRouter() *gin.Engine {
 	{
 		samples.RegisterRoutes(secured.Group("/samples"))
 		samplespanels.RegisterRoutes(secured.Group("/samplespanels"))
+		printer.RegisterRoutes(secured.Group("/printer"))
 	}
 
 	return router

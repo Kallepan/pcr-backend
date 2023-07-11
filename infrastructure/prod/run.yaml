@@ -1,0 +1,65 @@
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: pcr-backend
+    tier: backend
+  name: pcr-backend
+  namespace: pcr
+spec:
+  ports:
+  - name: gin
+    port: 80
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: pcr-backend
+    tier: backend
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: pcr-backend
+    tier: backend
+  name: pcr-backend
+  namespace: pcr
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: pcr-backend
+  template:
+    metadata:
+      labels:
+        app: pcr-backend
+        tier: backend
+    spec:
+      containers:
+      - envFrom:
+        - secretRef:
+            name: oe-secrets
+        image: kallepan/pcr-backend:v1
+        imagePullPolicy: Always
+        livenessProbe:
+          initialDelaySeconds: 60
+          tcpSocket:
+            port: 8080
+        name: pcr-backend
+        ports:
+        - containerPort: 8080
+          name: gin
+        readinessProbe:
+          initialDelaySeconds: 60
+          tcpSocket:
+            port: 8080
+          timeoutSeconds: 60
+        resources:
+          limits:
+            memory: 1Gi
+          requests:
+            memory: 1Gi
+        securityContext:
+          allowPrivilegeEscalation: false
+      imagePullSecrets:
+      - name: regcred

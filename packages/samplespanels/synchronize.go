@@ -67,7 +67,7 @@ func synchronize() {
 	BEGIN TRANSACTION;
 
 	INSERT INTO samples (sample_id, birthdate, full_name, created_by)
-		SELECT DISTINCT ingenious.barcode,ingenious.birthdate, ingenious.patient, users.user_id
+		SELECT DISTINCT ON (ingenious.barcode, ingenious.birthdate, ingenious.patient) ingenious.barcode, ingenious.birthdate, ingenious.patient, users.user_id
 		FROM ingenious
 		LEFT JOIN samples
 		ON samples.sample_id = ingenious.barcode

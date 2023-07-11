@@ -25,17 +25,17 @@ P1
 
 type PrintRequest struct {
 	SampleId string `json:"sample_id" binding:"required"`
-	Panel    string `json:"panel" binding:"required"`
+	PanelId  string `json:"panel_id" binding:"required"`
 }
 
 type PrintData struct {
-	Position string `json:"position"`
-	Name     string `json:"name"`
-	SampleId string `json:"sample_id"`
-	Panel    string `json:"panel"`
-	Device   string `json:"device"`
-	Run      string `json:"run"`
-	Date     string `json:"date"`
+	Position string
+	Name     string
+	SampleId string
+	Panel    string
+	Device   string
+	Run      string
+	Date     string
 }
 
 func Print(ctx *gin.Context) {
@@ -56,7 +56,7 @@ func Print(ctx *gin.Context) {
 
 	var printData PrintData
 	printData.SampleId = request.SampleId
-	printData.Panel = request.Panel
+	printData.Panel = request.PanelId
 
 	// Query Sample to retrieve the inge name
 	query := `
@@ -65,7 +65,7 @@ func Print(ctx *gin.Context) {
 		LEFT JOIN samples ON samplespanels.sample_id = samples.sample_id
 		WHERE samplespanels.sample_id = $1 AND panel_id = $2
 		`
-	err = database.Instance.QueryRow(query, request.SampleId, request.Panel).Scan(&printData.Position, &printData.Date, &printData.Name, &printData.Device, &printData.Run)
+	err = database.Instance.QueryRow(query, request.SampleId, request.PanelId).Scan(&printData.Position, &printData.Date, &printData.Name, &printData.Device, &printData.Run)
 
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})

@@ -1,5 +1,4 @@
-CREATE OR REPLACE FUNCTION update_position()
-RETURNS TRIGGER AS $$
+CREATE OR REPLACE FUNCTION update_position() RETURNS TRIGGER AS $$
 -- Update the position of the samplepanel if it is not set and run and device are set by taking the max position of the day and adding 1 with a default of 1
 BEGIN
     IF NEW.run IS NOT NULL AND NEW.device IS NOT NULL AND NEW.run_date IS NULL THEN

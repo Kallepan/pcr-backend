@@ -15,3 +15,5 @@
 # vendor/
 
 *.env
+
+0006_test.up.sql

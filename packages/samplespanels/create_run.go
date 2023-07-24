@@ -270,10 +270,17 @@ func CreateRun(ctx *gin.Context) {
 		for _, namePart := range splitBySpace(exportDataElement.sample.FullName) {
 			name += string(namePart[0])
 		}
+
+		// Check if birthdate is not nil
+		birthdate := "NA"
+		if exportDataElement.sample.Birthdate != nil {
+			birthdate = *exportDataElement.sample.Birthdate
+			birthdate = birthdate[:10]
+		}
 		file.SetCellValue(
 			"Lauf",
 			fmt.Sprintf("B%d", idx+12),
-			fmt.Sprintf("%s, %s - %s", exportDataElement.sample.SampleId, name, exportDataElement.sample.Birthdate),
+			fmt.Sprintf("%s, %s - %s", exportDataElement.sample.SampleId, name, birthdate),
 		)
 		file.SetCellValue(
 			"Lauf",

@@ -32,9 +32,11 @@ CREATE TABLE IF NOT EXISTS samplespanels (
 -- creates an index of samplespanels
 CREATE INDEX IF NOT EXISTS idx_samplespanels_panel_id ON samplespanels (panel_id);
 CREATE INDEX IF NOT EXISTS idx_samplespanels_sample_id ON samplespanels (sample_id);
+CREATE INDEX IF NOT EXISTS idx_samplespanels_run ON samplespanels (run);
 CREATE INDEX IF NOT EXISTS idx_samplespanels_run_date ON samplespanels (run_date);
 CREATE INDEX IF NOT EXISTS idx_samplespanels_position ON samplespanels (position);
 CREATE INDEX IF NOT EXISTS idx_samplespanels_complete ON samplespanels (run_date, position, device, run);
+
 -- create index of samples 
 CREATE INDEX IF NOT EXISTS idx_samples_sample_id_like ON samples (sample_id varchar_pattern_ops);
 

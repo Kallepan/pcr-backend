@@ -1,7 +1,7 @@
 CREATE TABLE IF NOT EXISTS samples (
     sample_id VARCHAR(12) PRIMARY KEY,
     full_name VARCHAR(255) NOT NULL,
-    birthdate DATE NOT NULL,
+    birthdate DATE,
 
     comment VARCHAR(255) DEFAULT NULL,
     sputalysed BOOLEAN NOT NULL DEFAULT FALSE,

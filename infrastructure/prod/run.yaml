@@ -39,7 +39,7 @@ spec:
       - envFrom:
         - secretRef:
             name: oe-secrets
-        image: kallepan/pcr-backend:v1
+        image: kallepan/pcr-backend:v2
         imagePullPolicy: Always
         livenessProbe:
           initialDelaySeconds: 60

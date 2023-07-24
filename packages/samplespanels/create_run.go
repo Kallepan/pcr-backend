@@ -247,22 +247,21 @@ func CreateRun(ctx *gin.Context) {
 				fmt.Sprintf("C%d", idx+12),
 				exportDataElement.panel.DisplayName,
 			)
+
 			// Check if comment is not nil
+			comment := ""
 			if exportDataElement.sample.Comment != nil {
-				file.SetCellValue(
-					"Lauf",
-					fmt.Sprintf("D%d", idx+12),
-					*exportDataElement.sample.Comment,
-				)
+				comment = *exportDataElement.sample.Comment
 			}
-			// Check if sample is sputalysed
 			if exportDataElement.sample.Sputalysed {
-				file.SetCellValue(
-					"Lauf",
-					fmt.Sprintf("F%d", idx+12),
-					"X",
-				)
+				// Check if sample is sputalysed
+				comment = fmt.Sprintf("%s, %s", "Mit Sputasol; ", comment)
 			}
+			file.SetCellValue(
+				"Lauf",
+				fmt.Sprintf("E%d", idx+12),
+				comment,
+			)
 		} else {
 			// Control
 			// Insert data into excel file

@@ -22,8 +22,6 @@ func FetchSampleInformationFromDatabase(sampleID string) (*models.Sample, error)
 		return nil, err
 	}
 
-	sample.Birthdate = sample.Birthdate[:10]
-
 	return &sample, nil
 }
 

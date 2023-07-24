@@ -18,7 +18,7 @@ type Sample struct {
 	FullName   string  `json:"full_name"`
 	Sputalysed bool    `json:"sputalysed"`
 	Comment    *string `json:"comment"`
-	Birthdate  string  `json:"birthdate"`
+	Birthdate  *string `json:"birthdate"`
 
 	CreatedAt string  `json:"created_at"`
 	CreatedBy *string `json:"created_by"`

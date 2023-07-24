@@ -33,7 +33,7 @@ func AddSample(ctx *gin.Context) {
 		FullName:   request.FullName,
 		Sputalysed: sputalysed,
 		Comment:    &request.Comment,
-		Birthdate:  request.Birthdate,
+		Birthdate:  &request.Birthdate,
 	}
 
 	// Check if sample already exists

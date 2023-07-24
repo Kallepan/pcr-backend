@@ -23,7 +23,7 @@ func GetSamplesPanels(ctx *gin.Context) {
 			LEFT JOIN users ON samples.created_by = users.user_id
 			GROUP BY samplespanels.sample_id, samples.full_name, samples.created_at, users.username
 		) 
-		SELECT samplespanels.sample_id, sample_query.full_name, sample_query.created_at, sample_query.created_by, samplespanels.panel_id, panels.display_name, panels.ready_mix, samplespanels.run, samplespanels.device, samplespanels.position, samplespanels.created_at, users.username
+		SELECT samplespanels.sample_id, sample_query.full_name, sample_query.created_at, sample_query.created_by, samplespanels.panel_id, panels.display_name, panels.ready_mix, samplespanels.run, samplespanels.device, samplespanels.position, samplespanels.run_date, samplespanels.created_at, users.username
 		FROM samplespanels
 		LEFT JOIN sample_query ON samplespanels.sample_id = sample_query.sample_id
 		LEFT JOIN panels ON samplespanels.panel_id = panels.panel_id
@@ -57,7 +57,7 @@ func GetSamplesPanels(ctx *gin.Context) {
 		if err := rows.Scan(
 			&sample.SampleId, &sample.FullName, &sample.CreatedAt, &sample.CreatedBy,
 			&panel.PanelId, &panel.DisplayName, &panel.ReadyMix,
-			&sampleAnalysis.Run, &sampleAnalysis.Device, &sampleAnalysis.Position, &sampleAnalysis.CreatedAt, &sampleAnalysis.CreatedBy); err != nil {
+			&sampleAnalysis.Run, &sampleAnalysis.Device, &sampleAnalysis.Position, &sampleAnalysis.RunDate, &sampleAnalysis.CreatedAt, &sampleAnalysis.CreatedBy); err != nil {
 
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		}

@@ -38,6 +38,7 @@ type ExportData struct {
 	panel *models.Panel
 	// Control info
 	Description *string
+	LastRunId   *string
 
 	IsControl bool
 }
@@ -142,7 +143,7 @@ func CreateRun(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
-	// Load template TODO: move to config
+	// Load template path from env
 	templatePath := utils.GetValueFromEnv("TEMPLATE_PATH", "/app/templates/v1.xlsm")
 
 	// Create copy of template
@@ -196,6 +197,17 @@ func CreateRun(ctx *gin.Context) {
 			exportDataElement.sample = sample
 			exportDataElement.panel = panel
 			exportDataElement.IsControl = false
+
+			// Append RunId
+			runId, err := ExtractLastRunId(*postElement.SampleId)
+			if err != nil {
+				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+				tx.Rollback()
+				return
+			}
+
+			exportDataElement.LastRunId = runId
+
 			// Append description --> last occurence of sample in a run
 			exportData = append(exportData, exportDataElement)
 		} else if postElement.ControlID != nil && postElement.Description != nil {
@@ -214,55 +226,7 @@ func CreateRun(ctx *gin.Context) {
 
 	// Insert data into database and excel file
 	for idx, exportDataElement := range exportData {
-		if !exportDataElement.IsControl {
-			// SampleAnalysis
-			// Insert data into database -> position is auto incremented in the database
-			if err := UpdateSampleAnalysisInDatabase(tx, exportDataElement.sample.SampleId, exportDataElement.panel.PanelId, request.Run, request.Device); err != nil {
-				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
-				tx.Rollback()
-				return
-			}
-
-			// Get position from database
-			position, err := GetPositionForSampleAnalysis(tx, exportDataElement.sample.SampleId, exportDataElement.panel.PanelId)
-			if err != nil {
-				ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
-				tx.Rollback()
-				return
-			}
-
-			// Insert data into excel file
-			file.SetCellValue(
-				"Lauf",
-				fmt.Sprintf("A%d", idx+12),
-				*position,
-			)
-			file.SetCellValue(
-				"Lauf",
-				fmt.Sprintf("B%d", idx+12),
-				fmt.Sprintf("%s, %s - %s", exportDataElement.sample.SampleId, exportDataElement.sample.FullName, exportDataElement.sample.Birthdate),
-			)
-			file.SetCellValue(
-				"Lauf",
-				fmt.Sprintf("C%d", idx+12),
-				exportDataElement.panel.DisplayName,
-			)
-
-			// Check if comment is not nil
-			comment := ""
-			if exportDataElement.sample.Comment != nil {
-				comment = *exportDataElement.sample.Comment
-			}
-			if exportDataElement.sample.Sputalysed {
-				// Check if sample is sputalysed
-				comment = fmt.Sprintf("%s, %s", "Mit Sputasol; ", comment)
-			}
-			file.SetCellValue(
-				"Lauf",
-				fmt.Sprintf("E%d", idx+12),
-				comment,
-			)
-		} else {
+		if exportDataElement.IsControl {
 			// Control
 			// Insert data into excel file
 			file.SetCellValue(
@@ -275,7 +239,75 @@ func CreateRun(ctx *gin.Context) {
 				fmt.Sprintf("D%d", idx+12),
 				*exportDataElement.Description,
 			)
+			continue
 		}
+
+		// SampleAnalysis
+		// Insert data into database -> position is auto incremented in the database
+		if err := UpdateSampleAnalysisInDatabase(tx, exportDataElement.sample.SampleId, exportDataElement.panel.PanelId, request.Run, request.Device); err != nil {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+			tx.Rollback()
+			return
+		}
+
+		// Get position from database
+		position, err := GetPositionForSampleAnalysis(tx, exportDataElement.sample.SampleId, exportDataElement.panel.PanelId)
+		if err != nil {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+			tx.Rollback()
+			return
+		}
+
+		// Insert data into excel file
+		file.SetCellValue(
+			"Lauf",
+			fmt.Sprintf("A%d", idx+12),
+			*position,
+		)
+
+		// Get name, split by space and extract first letter of each substring
+		name := ""
+		for _, namePart := range splitBySpace(exportDataElement.sample.FullName) {
+			name += string(namePart[0])
+		}
+		file.SetCellValue(
+			"Lauf",
+			fmt.Sprintf("B%d", idx+12),
+			fmt.Sprintf("%s, %s - %s", exportDataElement.sample.SampleId, name, exportDataElement.sample.Birthdate),
+		)
+		file.SetCellValue(
+			"Lauf",
+			fmt.Sprintf("C%d", idx+12),
+			exportDataElement.panel.DisplayName,
+		)
+
+		// Check if last run id is not nil
+		if exportDataElement.LastRunId != nil {
+			// Check if last run id is not empty
+			if *exportDataElement.LastRunId != "" {
+				// Write to cell
+				file.SetCellValue(
+					"Lauf",
+					fmt.Sprintf("D%d", idx+12),
+					*exportDataElement.LastRunId,
+				)
+			}
+		}
+
+		// Check if comment is not nil
+		comment := ""
+		if exportDataElement.sample.Comment != nil {
+			comment = *exportDataElement.sample.Comment
+		}
+		if exportDataElement.sample.Sputalysed {
+			// Check if sample is sputalysed
+			comment = fmt.Sprintf("%s; %s", "Mit Sputasol", comment)
+		}
+		file.SetCellValue(
+			"Lauf",
+			fmt.Sprintf("E%d", idx+12),
+			comment,
+		)
 	}
 
 	// Insert metadata into excel file

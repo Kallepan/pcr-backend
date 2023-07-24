@@ -46,7 +46,6 @@ func GetSamples(ctx *gin.Context) {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 			return
 		}
-		sample.Birthdate = sample.Birthdate[:10]
 		samples = append(samples, sample)
 	}
 

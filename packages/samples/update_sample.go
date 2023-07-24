@@ -49,8 +49,5 @@ func UpdateSample(ctx *gin.Context) {
 		return
 	}
 
-	// Format date
-	sample.Birthdate = sample.Birthdate[:10]
-
 	ctx.JSON(http.StatusOK, &sample)
 }

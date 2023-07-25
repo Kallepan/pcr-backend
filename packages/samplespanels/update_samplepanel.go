@@ -40,6 +40,7 @@ func UpdateSamplePanel(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
+
 	ctx.Status(http.StatusOK)
 }
 

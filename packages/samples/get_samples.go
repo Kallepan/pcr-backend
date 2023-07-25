@@ -49,5 +49,11 @@ func GetSamples(ctx *gin.Context) {
 		samples = append(samples, sample)
 	}
 
+	// Empty array
+	if len(samples) == 0 {
+		ctx.AbortWithStatus(http.StatusNotFound)
+		return
+	}
+
 	ctx.JSON(http.StatusOK, &samples)
 }

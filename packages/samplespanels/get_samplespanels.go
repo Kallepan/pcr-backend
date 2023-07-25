@@ -72,5 +72,11 @@ func GetSamplesPanels(ctx *gin.Context) {
 		return
 	}
 
+	// Empty array
+	if len(samplespanels) == 0 {
+		ctx.AbortWithStatus(http.StatusNotFound)
+		return
+	}
+
 	ctx.JSON(200, &samplespanels)
 }

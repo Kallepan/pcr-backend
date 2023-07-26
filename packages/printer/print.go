@@ -2,6 +2,7 @@ package printer
 
 import (
 	"fmt"
+	"log"
 	"net"
 	"net/http"
 	"regexp"
@@ -12,7 +13,7 @@ import (
 
 var printerAddress = "bc-pcr2.labmed.de:9100"
 
-var label = `q256
+var template = `q256
 N
 A150,40,0,5,1,1,N,"%s"
 A30,0,0,2,1,1,N,"%s"
@@ -20,8 +21,7 @@ A30,20,0,2,1,1,N,"%s"
 A30,50,0,2,1,1,N,"%s"
 A30,70,0,2,1,1,N,"%s"
 A30,100,0,1,1,1,N,"%s"
-P1
-`
+P1`
 
 type PrintRequestElement struct {
 	SampleId string `json:"sample_id" binding:"required"`
@@ -40,6 +40,31 @@ type PrintData struct {
 	Device   string
 	Run      string
 	Date     string
+}
+
+func (pd PrintData) createLabel() string {
+	// Truncate the date to 10 characters
+	pd.Date = pd.Date[0:10]
+	label := fmt.Sprintf(template, pd.Position, pd.SampleId, pd.Name, pd.Panel, pd.Device+pd.Run, pd.Date)
+	regex := regexp.MustCompile("[[:^ascii:]]")
+	label = regex.ReplaceAllString(label, "?")
+
+	// Return the formatted label
+	return label
+}
+
+func queryElement(sampleID string, panelID string) (*PrintData, error) {
+	var printData PrintData
+
+	query := `
+		SELECT position, run_date, samples.full_name, device, run
+		FROM samplespanels
+		LEFT JOIN samples ON samplespanels.sample_id = samples.sample_id
+		WHERE samplespanels.sample_id = $1 AND panel_id = $2
+	`
+	err := database.Instance.QueryRow(query, sampleID, panelID).Scan(&printData.Position, &printData.Date, &printData.Name, &printData.Device, &printData.Run)
+
+	return &printData, err
 }
 
 func Print(ctx *gin.Context) {
@@ -62,28 +87,16 @@ func Print(ctx *gin.Context) {
 	var labels []string
 
 	for _, element := range request.Elements {
-		var printData PrintData
-		query := `
-			SELECT position, run_date, samples.full_name, device, run
-			FROM samplespanels
-			LEFT JOIN samples ON samplespanels.sample_id = samples.sample_id
-			WHERE samplespanels.sample_id = $1 AND panel_id = $2
-		`
-		err = database.Instance.QueryRow(query, element.SampleId, element.PanelId).Scan(&printData.Position, &printData.Date, &printData.Name, &printData.Device, &printData.Run)
-
+		printData, err := queryElement(element.SampleId, element.PanelId)
 		if err != nil {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 			return
 		}
 
-		// Format Date
-		printData.Date = printData.Date[0:10]
-
 		// Generate the label string
-		label := fmt.Sprintf(label, printData.Position, element.SampleId, printData.Name, element.PanelId, printData.Device+printData.Run, printData.Date)
-		regex := regexp.MustCompile("[[:^ascii:]]")
-		label = regex.ReplaceAllString(label, "?")
+		label := printData.createLabel()
 
+		// Append the label to the slice
 		labels = append(labels, label)
 	}
 
@@ -91,8 +104,9 @@ func Print(ctx *gin.Context) {
 	for _, label := range labels {
 		_, err = conn.Write([]byte(label))
 		if err != nil {
-			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
-			return
+			log.Println(err.Error())
+			// Do not return here, because we want to print as many labels as possible
+			continue
 		}
 	}
 

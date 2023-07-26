@@ -17,7 +17,7 @@ import (
 )
 
 func main() {
-	connectionString := utils.GetConnectionString()
+	connectionString := utils.GetDBConnectionString()
 	database.Connect(connectionString)
 	database.Migrate()
 	defer database.Instance.Close()

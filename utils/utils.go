@@ -15,10 +15,8 @@ type DbInfo struct {
 	Port     int
 }
 
-func GetConnectionString() string {
-	dbInfo := getDbInfo()
-
-	connectionString := fmt.Sprintf(
+func (dbInfo DbInfo) ConnectionString() string {
+	return fmt.Sprintf(
 		"host=%s user=%s password=%s dbname=%s port=%d sslmode=disable",
 		dbInfo.Host,
 		dbInfo.User,
@@ -26,11 +24,9 @@ func GetConnectionString() string {
 		dbInfo.DbName,
 		dbInfo.Port,
 	)
-
-	return connectionString
 }
 
-func getDbInfo() DbInfo {
+func GetDBConnectionString() string {
 	envSrcUser := "POSTGRES_USER"
 	envSrcPass := "POSTGRES_PASSWORD"
 	envSrcDbName := "POSTGRES_DB"
@@ -41,16 +37,15 @@ func getDbInfo() DbInfo {
 	if err != nil {
 		log.Fatal("Failed to convert port to int")
 	}
+	var dbInfo DbInfo
 
-	dbInfo := DbInfo{
-		User:     GetValueFromEnv(envSrcUser, "test"),
-		Password: GetValueFromEnv(envSrcPass, "test"),
-		DbName:   GetValueFromEnv(envSrcDbName, "test"),
-		Host:     GetValueFromEnv(envSrcHost, "localhost"),
-		Port:     port,
-	}
+	dbInfo.User = GetValueFromEnv(envSrcUser, "test")
+	dbInfo.Password = GetValueFromEnv(envSrcPass, "test")
+	dbInfo.DbName = GetValueFromEnv(envSrcDbName, "test")
+	dbInfo.Host = GetValueFromEnv(envSrcHost, "localhost")
+	dbInfo.Port = port
 
-	return dbInfo
+	return dbInfo.ConnectionString()
 }
 
 func GetValueFromEnv(envSrc string, defaultValue string) string {

@@ -8,7 +8,7 @@ import (
 	"gitlab.com/kaka/pcr-backend/common/database"
 )
 
-func ExtractLastRunId(sample_id string) (*string, error) {
+func ExtractLastRunId(sample_id string) (string, error) {
 	query := `
 		SELECT CONCAT(device, '-POS', position, '-', run_date)
 		FROM samplespanels
@@ -23,10 +23,14 @@ func ExtractLastRunId(sample_id string) (*string, error) {
 	var run_id *string
 
 	if err := database.Instance.QueryRow(query, sample_id).Scan(&run_id); err != nil && err != sql.ErrNoRows {
-		return nil, err
+		return "-", err
 	}
 
-	return run_id, nil
+	if run_id == nil {
+		return "-", nil
+	}
+
+	return *run_id, nil
 }
 
 // SamplePanelExists checks if a sample is associated with a panel

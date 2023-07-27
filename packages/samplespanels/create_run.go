@@ -38,9 +38,37 @@ type ExportData struct {
 	panel *models.Panel
 	// Control info
 	Description *string
-	LastRunId   *string
+	LastRunId   string
 
 	IsControl bool
+}
+
+func getFormattedBirthdate(birthdatePtr *string) string {
+	if birthdatePtr == nil {
+		return "NA"
+	}
+
+	birthdate := *birthdatePtr
+	birthdate = birthdate[:10]
+
+	return birthdate
+}
+
+func getFormattedSampleId(sampleID string) string {
+
+	var formattedSampleID string
+	// Format sample id
+	if len(sampleID) == 8 {
+		//XXXX XXXX
+		formattedSampleID = fmt.Sprintf("%s %s", sampleID[:4], sampleID[4:])
+	} else if len(sampleID) == 12 {
+		//XXXX XXXXXX XX
+		formattedSampleID = fmt.Sprintf("%s %s %s", sampleID[:4], sampleID[4:10], sampleID[10:])
+	} else {
+		formattedSampleID = sampleID
+	}
+
+	return formattedSampleID
 }
 
 func createCopy(templatePath string) (string, error) {
@@ -272,15 +300,14 @@ func CreateRun(ctx *gin.Context) {
 		}
 
 		// Check if birthdate is not nil
-		birthdate := "NA"
-		if exportDataElement.sample.Birthdate != nil {
-			birthdate = *exportDataElement.sample.Birthdate
-			birthdate = birthdate[:10]
-		}
+		birthdate := getFormattedBirthdate(exportDataElement.sample.Birthdate)
+
+		formattedSampleID := getFormattedSampleId(exportDataElement.sample.SampleId)
+
 		file.SetCellValue(
 			"Lauf",
 			fmt.Sprintf("B%d", idx+12),
-			fmt.Sprintf("%s, %s - %s", exportDataElement.sample.SampleId, name, birthdate),
+			fmt.Sprintf("%s, %s - %s", formattedSampleID, name, birthdate),
 		)
 		file.SetCellValue(
 			"Lauf",
@@ -288,18 +315,12 @@ func CreateRun(ctx *gin.Context) {
 			exportDataElement.panel.DisplayName,
 		)
 
-		// Check if last run id is not nil
-		if exportDataElement.LastRunId != nil {
-			// Check if last run id is not empty
-			if *exportDataElement.LastRunId != "" {
-				// Write to cell
-				file.SetCellValue(
-					"Lauf",
-					fmt.Sprintf("D%d", idx+12),
-					*exportDataElement.LastRunId,
-				)
-			}
-		}
+		// Write runid to cell
+		file.SetCellValue(
+			"Lauf",
+			fmt.Sprintf("D%d", idx+12),
+			exportDataElement.LastRunId,
+		)
 
 		// Check if comment is not nil
 		comment := ""

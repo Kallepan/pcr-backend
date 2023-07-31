@@ -53,6 +53,7 @@ func synchronize() {
 
 	COMMIT;`)
 	if err != nil {
+		log.Println("Error while synchronizing analyses and panels table")
 		log.Println(err)
 		return
 	}
@@ -96,6 +97,7 @@ func synchronize() {
 	COMMIT;
 	`)
 	if err != nil {
+		log.Println("Error while synchronizing samples table")
 		log.Println(err)
 		return
 	}
@@ -121,6 +123,7 @@ func synchronize() {
 	COMMIT;
 	`)
 	if err != nil {
+		log.Println("Error while deleting samplespanels entries")
 		log.Println(err)
 		return
 	}

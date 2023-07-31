@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS samples (
     sample_id VARCHAR(12) PRIMARY KEY,
-    full_name VARCHAR(255) NOT NULL,
+    full_name VARCHAR(255) NOT NULL DEFAULT "NA",
     birthdate DATE,
 
     comment VARCHAR(255) DEFAULT NULL,

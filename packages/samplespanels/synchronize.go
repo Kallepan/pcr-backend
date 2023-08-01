@@ -4,6 +4,7 @@ Synchronizes the ingenious table with the sampleanalyses and samples table
 package samplespanels
 
 import (
+	"database/sql"
 	"log"
 	"sync"
 	"time"
@@ -27,18 +28,14 @@ func StartSynchronize(interval time.Duration) {
 	}()
 }
 
-func synchronize() {
-	syncLock.Lock()
-	defer syncLock.Unlock()
-
+func synchronizeAnalysesTable(tx *sql.Tx) error {
 	/*
 		Ensure that the analyses and panels table has the same entries
 		This function creates a new panel if it does not exist in the panels table.
 		Furthermore, it creates a new analysis if it does not exist in the analyses table.
 	*/
-	_, err := database.Instance.Exec(`
-	BEGIN TRANSACTION;
 
+	_, err := tx.Exec(`
 	INSERT INTO panels (panel_id, display_name)
 	SELECT DISTINCT ingenious.usi as panel_id, ingenious.usi AS display_name
 	FROM ingenious
@@ -50,20 +47,17 @@ func synchronize() {
 	FROM ingenious
 	LEFT JOIN analyses ON analyses.analysis_id = ingenious.usi
 	WHERE analyses.analysis_id IS NULL;
+	`)
 
-	COMMIT;`)
-	if err != nil {
-		log.Println("Error while synchronizing analyses and panels table")
-		log.Println(err)
-		return
-	}
+	return err
+}
 
+func synchronizeSamples(tx *sql.Tx) error {
 	/*
 		Ensure that the samples table has the same entries as the ingenious table
 	*/
-	_, err = database.Instance.Exec(`
-	BEGIN TRANSACTION;
 
+	_, err := tx.Exec(`
 	INSERT INTO samples (sample_id, birthdate, full_name, created_by)
 		SELECT DISTINCT ON (ingenious.barcode, ingenious.birthdate, ingenious.patient) ingenious.barcode, ingenious.birthdate, ingenious.patient, users.user_id
 		FROM ingenious
@@ -74,7 +68,8 @@ func synchronize() {
 			FROM users
 			LIMIT 1
 		) users ON 1=1
-		WHERE samples.sample_id IS NULL;
+		WHERE samples.sample_id IS NULL 
+		AND ingenious.barcode IS NOT NULL AND ingenious.patient IS NOT NULL;
 	
 	WITH filtered_samples AS (
 		SELECT DISTINCT ingenious.barcode, analyses.panel_id, users.user_id
@@ -86,6 +81,7 @@ func synchronize() {
 			FROM users
 			LIMIT 1
 		) users ON 1=1
+		WHERE ingenious.barcode IS NOT NULL AND ingenious.patient IS NOT NULL
 	) 
 	INSERT INTO samplespanels (sample_id, panel_id, created_by)
 		SELECT DISTINCT filtered_samples.barcode, filtered_samples.panel_id, filtered_samples.user_id
@@ -94,36 +90,90 @@ func synchronize() {
 		ON samplespanels.sample_id = filtered_samples.barcode AND
 		samplespanels.panel_id = filtered_samples.panel_id
 		WHERE samplespanels.sample_id IS NULL AND  samplespanels.panel_id IS NULL;
-	COMMIT;
 	`)
-	if err != nil {
-		log.Println("Error while synchronizing samples table")
-		log.Println(err)
-		return
-	}
 
+	return err
+}
+
+func analyze(tx *sql.Tx) error {
+	/*
+		Analyze and auto-vacuum the samplespanels and samples table
+	*/
+
+	_, err := tx.Exec(`
+	ANALYZE samplespanels;
+	VACUUM samplespanels;
+	ANALYZE samples;
+	VACUUM samples;
+	`)
+
+	return err
+}
+
+func deleteOutdatedSamplesPanels(tx *sql.Tx) error {
 	/*
 		Delete all samplespanels entries by the sample_id where the first ten digits and the panel_id are the same except the youngest entry.
 		This is done to ensure that the samplespanels table only contains the latest entry for each sample_id and panel_id combination.
 		As older entries are imported from MOLIS during the synchronization, they are deleted here.
 	*/
-	_, err = database.Instance.Exec(`
-	BEGIN TRANSACTION;
-		DELETE FROM samplespanels 
-		WHERE (panel_id, LEFT(sample_id, 10), created_at) NOT IN (
-			SELECT panel_id, LEFT(sample_id, 10) , MAX(created_at)
-			FROM samplespanels
-			GROUP BY panel_id, LEFT(sample_id, 10)
-		) AND (panel_id, LEFT(sample_id, 10)) IN (
-			SELECT panel_id, LEFT(sample_id, 10)
-			FROM samplespanels
-			GROUP BY panel_id, LEFT(sample_id, 10)
-			HAVING COUNT(*) > 1
-		);
-	COMMIT;
+
+	_, err := tx.Exec(`
+	DELETE FROM samplespanels 
+	WHERE (panel_id, LEFT(sample_id, 10), created_at) NOT IN (
+		SELECT panel_id, LEFT(sample_id, 10) , MAX(created_at)
+		FROM samplespanels
+		GROUP BY panel_id, LEFT(sample_id, 10)
+	) AND (panel_id, LEFT(sample_id, 10)) IN (
+		SELECT panel_id, LEFT(sample_id, 10)
+		FROM samplespanels
+		GROUP BY panel_id, LEFT(sample_id, 10)
+		HAVING COUNT(*) > 1
+	);
 	`)
+
+	return err
+}
+
+func synchronize() {
+	syncLock.Lock()
+	defer syncLock.Unlock()
+	tx, err := database.Instance.Begin()
 	if err != nil {
-		log.Println("Error while deleting samplespanels entries")
+		log.Println(err)
+		return
+	}
+	defer func() {
+		if err := recover(); err != nil {
+			tx.Rollback()
+			log.Println(err)
+		}
+	}()
+
+	if err := synchronizeAnalysesTable(tx); err != nil {
+		log.Println(err)
+		tx.Rollback()
+		return
+	}
+
+	if err := synchronizeSamples(tx); err != nil {
+		log.Println(err)
+		tx.Rollback()
+		return
+	}
+
+	if err := deleteOutdatedSamplesPanels(tx); err != nil {
+		log.Println(err)
+		tx.Rollback()
+		return
+	}
+
+	if err := analyze(tx); err != nil {
+		log.Println(err)
+		tx.Rollback()
+		return
+	}
+
+	if err := tx.Commit(); err != nil {
 		log.Println(err)
 		return
 	}

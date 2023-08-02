@@ -16,6 +16,46 @@ type AddAnalysisToSampleRequest struct {
 	PanelId  string `json:"panel_id" binding:"required"`
 }
 
+func buildCreateQuery() string {
+	query := `
+		WITH sample_query AS (
+			SELECT samples.sample_id, samples.full_name, samples.created_at, samples.sputalysed, users.username AS created_by
+			FROM samples
+			LEFT JOIN users ON samples.created_by = users.user_id
+			WHERE samples.sample_id = $1
+			GROUP BY samples.sample_id, samples.full_name, samples.created_at, samples.sputalysed, users.username
+		), sample_panel AS ( 
+			INSERT INTO samplespanels (sample_id, panel_id, created_by) 
+			VALUES ($1, $2, $3)
+			RETURNING sample_id, panel_id, created_at, created_by
+		)
+			SELECT sample_panel.created_at, users.username, panels.panel_id, panels.ready_mix, sample_query.full_name, sample_query.sputalysed, sample_query.created_at, sample_query.created_by
+			FROM sample_panel
+			LEFT JOIN sample_query ON sample_panel.sample_id = sample_query.sample_id
+			LEFT JOIN users ON sample_panel.created_by = users.user_id
+			LEFT JOIN panels ON sample_panel.panel_id = panels.panel_id
+		`
+	return query
+}
+
+func executeCreateQuery(query string, userID string, sampleAnalysis *models.SampleAnalysis) error {
+	err := database.Instance.QueryRow(
+		query,
+		&sampleAnalysis.Sample.SampleId,
+		&sampleAnalysis.Panel.PanelId,
+		userID).Scan(
+		&sampleAnalysis.CreatedAt,
+		&sampleAnalysis.CreatedBy,
+		&sampleAnalysis.Panel.PanelId,
+		&sampleAnalysis.Panel.ReadyMix,
+		&sampleAnalysis.Sample.FullName,
+		&sampleAnalysis.Sample.Sputalysed,
+		&sampleAnalysis.Sample.CreatedAt,
+		&sampleAnalysis.Sample.CreatedBy)
+
+	return err
+}
+
 func AddAnalysisToSample(ctx *gin.Context) {
 	user_id := ctx.MustGet("user_id").(string)
 
@@ -52,49 +92,22 @@ func AddAnalysisToSample(ctx *gin.Context) {
 	}
 
 	// Create sample analysis
-	sample_analysis := models.SampleAnalysis{}
-	sample_analysis.Sample = models.Sample{}
-	sample_analysis.Panel = models.Panel{}
-	sample_analysis.Sample.SampleId = body.SampleId
-	sample_analysis.Panel.PanelId = body.PanelId
+	sampleAnalysis := models.SampleAnalysis{}
+	sampleAnalysis.Sample = models.Sample{}
+	sampleAnalysis.Panel = models.Panel{}
+	sampleAnalysis.Sample.SampleId = body.SampleId
+	sampleAnalysis.Panel.PanelId = body.PanelId
 
 	// Run query
-	query := `
-		WITH sample_query AS (
-			SELECT samples.sample_id, samples.full_name, samples.created_at, samples.sputalysed, users.username AS created_by
-			FROM samples
-			LEFT JOIN users ON samples.created_by = users.user_id
-			WHERE samples.sample_id = $1
-			GROUP BY samples.sample_id, samples.full_name, samples.created_at, samples.sputalysed, users.username
-		), sample_panel AS ( 
-			INSERT INTO samplespanels (sample_id, panel_id, created_by) 
-			VALUES ($1, $2, $3)
-			RETURNING sample_id, panel_id, created_at, created_by
-		)
-			SELECT sample_panel.created_at, users.username, panels.panel_id, panels.ready_mix, sample_query.full_name, sample_query.sputalysed, sample_query.created_at, sample_query.created_by
-			FROM sample_panel
-			LEFT JOIN sample_query ON sample_panel.sample_id = sample_query.sample_id
-			LEFT JOIN users ON sample_panel.created_by = users.user_id
-			LEFT JOIN panels ON sample_panel.panel_id = panels.panel_id
-		`
-	err := database.Instance.QueryRow(
-		query,
-		&sample_analysis.Sample.SampleId,
-		&sample_analysis.Panel.PanelId,
-		user_id).Scan(
-		&sample_analysis.CreatedAt,
-		&sample_analysis.CreatedBy,
-		&sample_analysis.Panel.PanelId,
-		&sample_analysis.Panel.ReadyMix,
-		&sample_analysis.Sample.FullName,
-		&sample_analysis.Sample.Sputalysed,
-		&sample_analysis.Sample.CreatedAt,
-		&sample_analysis.Sample.CreatedBy)
+	query := buildCreateQuery()
+
+	// Execute query
+	err := executeCreateQuery(query, user_id, &sampleAnalysis)
 
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
 
-	ctx.JSON(http.StatusOK, &sample_analysis)
+	ctx.JSON(http.StatusOK, &sampleAnalysis)
 }

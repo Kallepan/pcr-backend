@@ -14,6 +14,7 @@ import (
 	"gitlab.com/kaka/pcr-backend/common/database"
 	"gitlab.com/kaka/pcr-backend/common/models"
 	"gitlab.com/kaka/pcr-backend/packages/panels"
+	"gitlab.com/kaka/pcr-backend/packages/projectpath"
 	"gitlab.com/kaka/pcr-backend/packages/samples"
 	"gitlab.com/kaka/pcr-backend/utils"
 )
@@ -54,7 +55,7 @@ func getFormattedBirthdate(birthdatePtr *string) string {
 	return birthdate
 }
 
-func getFormattedSampleId(sampleID string) string {
+func getFormattedSampleID(sampleID string) string {
 
 	var formattedSampleID string
 	// Format sample id
@@ -71,29 +72,28 @@ func getFormattedSampleId(sampleID string) string {
 	return formattedSampleID
 }
 
-func createCopy(templatePath string) (string, error) {
+func createCopy(templatePath string) (*string, error) {
 	// Creates a copy of the template file to the tmp folder renaming it with a timestamp
-
-	outputPath := fmt.Sprintf("tmp/%s.xlsm", time.Now().Format("20060102150405"))
+	outputPath := fmt.Sprintf("%s/tmp/%s.xlsm", projectpath.Root, time.Now().Format("20060102150405"))
 
 	src, err := os.Open(templatePath)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer src.Close()
 
 	dst, err := os.Create(outputPath)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	defer dst.Close()
 
 	_, err = io.Copy(dst, src)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
-	return outputPath, nil
+	return &outputPath, nil
 }
 
 func UpdateSampleAnalysisInDatabase(tx *sql.Tx, sampleId string, panelId string, run string, device string) error {
@@ -182,7 +182,7 @@ func CreateRun(ctx *gin.Context) {
 		return
 	}
 	// Open copy of template
-	file, err := excelize.OpenFile(outputPath)
+	file, err := excelize.OpenFile(*outputPath)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
@@ -190,7 +190,7 @@ func CreateRun(ctx *gin.Context) {
 	// Close file and remove it from disk
 	defer func() {
 		file.Close()
-		os.Remove(outputPath)
+		os.Remove(*outputPath)
 	}()
 
 	var exportData []ExportData
@@ -302,7 +302,7 @@ func CreateRun(ctx *gin.Context) {
 		// Check if birthdate is not nil
 		birthdate := getFormattedBirthdate(exportDataElement.sample.Birthdate)
 
-		formattedSampleID := getFormattedSampleId(exportDataElement.sample.SampleId)
+		formattedSampleID := getFormattedSampleID(exportDataElement.sample.SampleId)
 
 		file.SetCellValue(
 			"Lauf",
@@ -364,5 +364,5 @@ func CreateRun(ctx *gin.Context) {
 		return
 	}
 
-	ctx.File(outputPath)
+	ctx.File(*outputPath)
 }

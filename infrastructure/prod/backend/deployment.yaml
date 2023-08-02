@@ -30,14 +30,17 @@ spec:
             - containerPort: 8080
               name: gin
           readinessProbe:
-            tcpSocket:
+            httpGet:
+              path: /api/v1/ping
               port: 8080
-            initialDelaySeconds: 60
-            timeoutSeconds: 60
+            initialDelaySeconds: 20
+            timeoutSeconds: 1
           livenessProbe:
             initialDelaySeconds: 60
-            tcpSocket:
+            httpGet:
+              path: /api/v1/ping
               port: 8080
+            periodSeconds: 30
           resources:
             limits:
               memory: "1Gi"

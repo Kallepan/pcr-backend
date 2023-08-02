@@ -39,21 +39,24 @@ spec:
       - envFrom:
         - secretRef:
             name: oe-secrets
-        image: kallepan/pcr-backend:v2
+        image: kallepan/pcr-backend:v1
         imagePullPolicy: Always
         livenessProbe:
-          initialDelaySeconds: 60
-          tcpSocket:
+          httpGet:
+            path: /api/v1/ping
             port: 8080
+          initialDelaySeconds: 60
+          periodSeconds: 30
         name: pcr-backend
         ports:
         - containerPort: 8080
           name: gin
         readinessProbe:
-          initialDelaySeconds: 60
-          tcpSocket:
+          httpGet:
+            path: /api/v1/ping
             port: 8080
-          timeoutSeconds: 60
+          initialDelaySeconds: 20
+          timeoutSeconds: 1
         resources:
           limits:
             memory: 1Gi

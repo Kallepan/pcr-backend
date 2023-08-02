@@ -46,6 +46,7 @@ func GetSamples(ctx *gin.Context) {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 			return
 		}
+
 		samples = append(samples, sample)
 	}
 

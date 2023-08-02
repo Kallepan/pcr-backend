@@ -61,8 +61,7 @@ func synchronizeSamples(tx *sql.Tx) error {
 	INSERT INTO samples (sample_id, birthdate, full_name, created_by)
 		SELECT DISTINCT ON (ingenious.barcode, ingenious.birthdate, ingenious.patient) ingenious.barcode, ingenious.birthdate, ingenious.patient, users.user_id
 		FROM ingenious
-		LEFT JOIN samples
-		ON samples.sample_id = ingenious.barcode
+		LEFT JOIN samples ON samples.sample_id = ingenious.barcode
 		LEFT JOIN (
 			SELECT user_id
 			FROM users
@@ -95,21 +94,6 @@ func synchronizeSamples(tx *sql.Tx) error {
 	return err
 }
 
-func analyze(tx *sql.Tx) error {
-	/*
-		Analyze and auto-vacuum the samplespanels and samples table
-	*/
-
-	_, err := tx.Exec(`
-	ANALYZE samplespanels;
-	VACUUM samplespanels;
-	ANALYZE samples;
-	VACUUM samples;
-	`)
-
-	return err
-}
-
 func deleteOutdatedSamplesPanels(tx *sql.Tx) error {
 	/*
 		Delete all samplespanels entries by the sample_id where the first ten digits and the panel_id are the same except the youngest entry.
@@ -134,6 +118,22 @@ func deleteOutdatedSamplesPanels(tx *sql.Tx) error {
 	return err
 }
 
+func deleteEmptySamples(tx *sql.Tx) error {
+	/*
+		Delete all samples entries where the sample_id does not exist in the samplespanels table and older than 10 minutes.
+	*/
+
+	_, err := tx.Exec(`
+	DELETE FROM samples
+	WHERE sample_id NOT IN (
+		SELECT sample_id
+		FROM samplespanels
+	) AND created_at < NOW() - INTERVAL '10 minutes';
+	`)
+
+	return err
+}
+
 func synchronize() {
 	syncLock.Lock()
 	defer syncLock.Unlock()
@@ -150,30 +150,40 @@ func synchronize() {
 	}()
 
 	if err := synchronizeAnalysesTable(tx); err != nil {
+		log.Println("Error while synchronizing analyses table")
 		log.Println(err)
 		tx.Rollback()
 		return
 	}
 
 	if err := synchronizeSamples(tx); err != nil {
+		log.Println("Error while synchronizing samples table")
 		log.Println(err)
 		tx.Rollback()
 		return
 	}
 
 	if err := deleteOutdatedSamplesPanels(tx); err != nil {
+		log.Println("Error while deleting outdated samplespanels entries")
 		log.Println(err)
 		tx.Rollback()
 		return
 	}
 
-	if err := analyze(tx); err != nil {
+	if err := deleteEmptySamples(tx); err != nil {
+		log.Println("Error while deleting empty samples entries")
 		log.Println(err)
 		tx.Rollback()
 		return
 	}
 
 	if err := tx.Commit(); err != nil {
+		log.Println(err)
+		return
+	}
+
+	// Analyze the database to update the statistics
+	if _, err := database.Instance.Exec("ANALYZE"); err != nil {
 		log.Println(err)
 		return
 	}

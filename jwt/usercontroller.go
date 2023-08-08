@@ -46,7 +46,7 @@ func CreateAdminUser() {
 		panic(err)
 	}
 
-	query := "INSERT INTO users (email, firstname, lastname, username, password) VALUES ($1, $2, $3, $4, $5) RETURNING user_id"
+	query := "INSERT INTO users (email, firstname, lastname, username, password, is_admin) VALUES ($1, $2, $3, $4, $5, true) RETURNING user_id"
 	err := database.Instance.QueryRow(query, &user.Email, &user.FirstName, &user.LastName, &user.Username, &user.Password).Scan(&user.UserId)
 
 	if err != nil {

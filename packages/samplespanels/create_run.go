@@ -4,6 +4,7 @@ import (
 	"database/sql"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"sync"
@@ -14,7 +15,6 @@ import (
 	"gitlab.com/kaka/pcr-backend/common/database"
 	"gitlab.com/kaka/pcr-backend/common/models"
 	"gitlab.com/kaka/pcr-backend/packages/panels"
-	"gitlab.com/kaka/pcr-backend/packages/projectpath"
 	"gitlab.com/kaka/pcr-backend/packages/samples"
 	"gitlab.com/kaka/pcr-backend/utils"
 )
@@ -74,7 +74,7 @@ func getFormattedSampleID(sampleID string) string {
 
 func createCopy(templatePath string) (*string, error) {
 	// Creates a copy of the template file to the tmp folder renaming it with a timestamp
-	outputPath := fmt.Sprintf("%s/tmp/%s.xlsm", projectpath.Root, time.Now().Format("20060102150405"))
+	outputPath := fmt.Sprintf("tmp/%s.xlsm", time.Now().Format("20060102150405"))
 
 	src, err := os.Open(templatePath)
 	if err != nil {
@@ -92,6 +92,8 @@ func createCopy(templatePath string) (*string, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	log.Println("Created copy of template in: ", outputPath)
 
 	return &outputPath, nil
 }

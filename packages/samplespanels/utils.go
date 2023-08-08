@@ -2,6 +2,7 @@ package samplespanels
 
 import (
 	"database/sql"
+	"fmt"
 	"math/rand"
 	"strings"
 
@@ -61,7 +62,30 @@ func RandStringBytes(n int) string {
 	return string(b)
 }
 
-// splitBySpace splits the string by space
-func splitBySpace(s string) []string {
-	return strings.Split(s, " ")
+func getFormattedName(s string) string {
+	// Get name, split by comma, take the last name and first letter of the first name
+	// e.g. "Doe,John" -> "Doe J"
+	// e.g. "Doe" -> "Doe"
+
+	if s == "" {
+		return ""
+	}
+
+	// Split by comma
+	split := strings.Split(s, ",")
+	if len(split) == 1 {
+		return s
+	}
+
+	// Get last name
+	last_name := split[0]
+
+	// Get first name
+	first_name := split[1]
+
+	// Get first letter of first name
+	first_letter := string(first_name[0])
+
+	// Return formatted name
+	return fmt.Sprintf("%s %s", last_name, first_letter)
 }

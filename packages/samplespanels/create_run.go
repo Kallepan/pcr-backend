@@ -295,11 +295,8 @@ func CreateRun(ctx *gin.Context) {
 			*position,
 		)
 
-		// Get name, split by space and extract first letter of each substring
-		name := ""
-		for _, namePart := range splitBySpace(exportDataElement.sample.FullName) {
-			name += string(namePart[0])
-		}
+		// Get formatted name
+		name := getFormattedName(exportDataElement.sample.FullName)
 
 		// Check if birthdate is not nil
 		birthdate := getFormattedBirthdate(exportDataElement.sample.Birthdate)

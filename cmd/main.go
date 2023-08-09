@@ -24,7 +24,7 @@ func main() {
 
 	jwt.CreateAdminUser()
 
-	interval := time.Minute * 7
+	interval := time.Minute * 15
 	samplespanels.StartSynchronize(interval)
 
 	router := initRouter()

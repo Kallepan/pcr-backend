@@ -96,21 +96,30 @@ func synchronizeSamples(tx *sql.Tx) error {
 
 func deleteOutdatedSamplesPanels(tx *sql.Tx) error {
 	/*
-		Delete all samplespanels entries by the sample_id where the first ten digits and the panel_id are the same except the youngest entry.
-		This is done to ensure that the samplespanels table only contains the latest entry for each sample_id and panel_id combination.
-		As older entries are imported from MOLIS during the synchronization, they are deleted here.
+		Delete all samplespanels entries where the first three letters of the panel_id and the first ten digits of the sample_id are the same except the youngest entry.
+
+		Afterwards, the same is done for the first three digits of the panel_id and the first ten digits of the sample_id.
+
+		Example:
+		Entries:
+		- TBXA, 123456789002, 2020-01-01 00:00:00
+		- TBXB, 123456789002, 2020-01-01 00:00:01
+		- TBXA, 123456789003, 2020-01-01 00:00:02
+
+		After the query, only the last entry will remain.
 	*/
 
 	_, err := tx.Exec(`
-	DELETE FROM samplespanels 
-	WHERE (panel_id, LEFT(sample_id, 10), created_at) NOT IN (
-		SELECT panel_id, LEFT(sample_id, 10) , MAX(created_at)
+	-- Delete all samplespanels entries by the sample_id where the first ten digits and the first three letters of the panel_id are the same except the youngest entry.
+	DELETE FROM samplespanels
+	WHERE (LEFT(panel_id, 3), LEFT(sample_id, 10), created_at) NOT IN (
+		 SELECT LEFT(panel_id, 3), LEFT(sample_id, 10), MAX(created_at)
+		 FROM samplespanels
+		 GROUP BY LEFT(panel_id,3) , LEFT(sample_id, 10)
+	) AND (LEFT(panel_id, 3), LEFT(sample_id, 10)) IN (
+		SELECT LEFT(panel_id, 3), LEFT(sample_id, 10)
 		FROM samplespanels
-		GROUP BY panel_id, LEFT(sample_id, 10)
-	) AND (panel_id, LEFT(sample_id, 10)) IN (
-		SELECT panel_id, LEFT(sample_id, 10)
-		FROM samplespanels
-		GROUP BY panel_id, LEFT(sample_id, 10)
+		GROUP BY LEFT(panel_id, 3), LEFT(sample_id, 10)
 		HAVING COUNT(*) > 1
 	);
 	`)
@@ -121,6 +130,8 @@ func deleteOutdatedSamplesPanels(tx *sql.Tx) error {
 func deleteEmptySamples(tx *sql.Tx) error {
 	/*
 		Delete all samples entries where the sample_id does not exist in the samplespanels table and older than 10 minutes.
+		This exists to clean up sampes which have no panels associated with them. The time delay is necessary if a sample
+		is created manually by the user and the panels are added later.
 	*/
 
 	_, err := tx.Exec(`

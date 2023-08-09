@@ -3,10 +3,7 @@ package samplespanels
 import (
 	"database/sql"
 	"fmt"
-	"io"
-	"log"
 	"net/http"
-	"os"
 	"sync"
 	"time"
 
@@ -70,32 +67,6 @@ func getFormattedSampleID(sampleID string) string {
 	}
 
 	return formattedSampleID
-}
-
-func createCopy(templatePath string) (*string, error) {
-	// Creates a copy of the template file to the tmp folder renaming it with a timestamp
-	outputPath := fmt.Sprintf("tmp/%s.xlsm", time.Now().Format("20060102150405"))
-
-	src, err := os.Open(templatePath)
-	if err != nil {
-		return nil, err
-	}
-	defer src.Close()
-
-	dst, err := os.Create(outputPath)
-	if err != nil {
-		return nil, err
-	}
-	defer dst.Close()
-
-	_, err = io.Copy(dst, src)
-	if err != nil {
-		return nil, err
-	}
-
-	log.Println("Created copy of template in: ", outputPath)
-
-	return &outputPath, nil
 }
 
 func UpdateSampleAnalysisInDatabase(tx *sql.Tx, sampleId string, panelId string, run string, device string) error {
@@ -173,26 +144,20 @@ func CreateRun(ctx *gin.Context) {
 		ctx.AbortWithStatusJSON(http.StatusBadRequest, gin.H{"message": err.Error()})
 		return
 	}
+
 	// Load template path from env
 	templatePath := utils.GetValueFromEnv("TEMPLATE_PATH", "/app/templates/v1.xlsm")
+	outputPath := fmt.Sprintf("/tmp/%s.xlsm", time.Now().Format("20060102150405"))
 
-	// Create copy of template
-	outputPath, err := createCopy(templatePath)
-
-	if err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
-		return
-	}
 	// Open copy of template
-	file, err := excelize.OpenFile(*outputPath)
+	file, err := excelize.OpenFile(templatePath)
 	if err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		return
 	}
-	// Close file and remove it from disk
+	// Close file
 	defer func() {
 		file.Close()
-		os.Remove(*outputPath)
 	}()
 
 	var exportData []ExportData
@@ -343,15 +308,7 @@ func CreateRun(ctx *gin.Context) {
 	file.SetCellValue("Lauf", "D9", request.Run)
 
 	// Set Headers and status
-	ctx.Header("Content-Type", "application/vnd.ms-excel.sheet.macroEnabled.12")
-	ctx.Header("Content-Disposition", "attachment; filename=run.xlsm")
-
-	if err := file.Write(ctx.Writer); err != nil {
-		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
-		tx.Rollback()
-		return
-	}
-	if err := file.Save(); err != nil {
+	if err := file.SaveAs(outputPath); err != nil {
 		ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 		tx.Rollback()
 		return
@@ -363,5 +320,5 @@ func CreateRun(ctx *gin.Context) {
 		return
 	}
 
-	ctx.File(*outputPath)
+	ctx.File(outputPath)
 }

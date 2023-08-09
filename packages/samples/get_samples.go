@@ -1,6 +1,8 @@
 package samples
 
 import (
+	"database/sql"
+	"fmt"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
@@ -16,21 +18,23 @@ func GetSamples(ctx *gin.Context) {
 	var params []interface{}
 
 	query := `
-		SELECT sample_id,samples.full_name,birthdate,sputalysed,comment,created_at,users.username
-		FROM samples
-		LEFT JOIN users ON samples.created_by = users.user_id
+		SELECT s.sample_id,s.full_name,s.birthdate,s.sputalysed,s.comment,s.created_at,u.username, string_agg(samplespanels.panel_id, ', ') AS panels
+		FROM samples s
+		LEFT JOIN users u ON s.created_by = u.user_id
+		LEFT JOIN samplespanels ON samplespanels.sample_id = s.sample_id AND samplespanels.deleted = false
 		WHERE 1 = 1
 	`
 
 	if sample_id != "" {
 		query += `
-			AND sample_id = $1
+			AND s.sample_id LIKE $1
 		`
-		params = append(params, sample_id)
+		param := fmt.Sprintf("%%%s%%", sample_id)
+		params = append(params, param)
 	}
 	query += `
-		AND created_at >= current_date - interval '14 day'
-		ORDER BY created_at DESC, sample_id DESC;
+		AND s.created_at >= current_date - interval '14 day'
+		GROUP BY s.sample_id, u.username ORDER BY s.created_at DESC, s.sample_id DESC;
 	`
 
 	rows, err := database.Instance.Query(query, params...)
@@ -42,9 +46,16 @@ func GetSamples(ctx *gin.Context) {
 
 	for rows.Next() {
 		var sample models.Sample
-		if err := rows.Scan(&sample.SampleId, &sample.FullName, &sample.Birthdate, &sample.Sputalysed, &sample.Comment, &sample.CreatedAt, &sample.CreatedBy); err != nil {
+		var panels sql.NullString
+		if err := rows.Scan(&sample.SampleId, &sample.FullName, &sample.Birthdate, &sample.Sputalysed, &sample.Comment, &sample.CreatedAt, &sample.CreatedBy, &panels); err != nil {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 			return
+		}
+
+		if panels.Valid {
+			sample.Panels = panels.String
+		} else {
+			sample.Panels = "N/A"
 		}
 
 		samples = append(samples, sample)

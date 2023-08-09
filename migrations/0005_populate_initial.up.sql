@@ -27,7 +27,8 @@ INSERT INTO panels (panel_id, ready_mix, display_name) VALUES
 ('TBCPRES',TRUE,'TBCPRES'),
 ('TBCPSPU',TRUE,'TBCPSPU'),
 ('TBCPU',TRUE,'TBCPU'),
-('TBCPX',TRUE,'TBCPX');
+('TBCPX',TRUE,'TBCPX'),
+('CLO', TRUE, 'CLO');
 
 -- Fill the analysis table with data
 INSERT INTO analyses (analysis_id, panel_id) VALUES
@@ -65,4 +66,5 @@ INSERT INTO analyses (analysis_id, panel_id) VALUES
 ('TBCPRES','TBCPRES'),
 ('TBCPSPU','TBCPSPU'),
 ('TBCPU','TBCPU'),
-('TBCPX','TBCPX');
+('TBCPX','TBCPX'),
+('CLO','CLO');

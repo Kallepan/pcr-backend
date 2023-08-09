@@ -22,6 +22,8 @@ type Sample struct {
 
 	CreatedAt string  `json:"created_at"`
 	CreatedBy *string `json:"created_by"`
+
+	Panels string `json:"panels"`
 }
 
 type Panel struct {

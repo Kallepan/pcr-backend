@@ -8,4 +8,5 @@ func RegisterRoutes(router *gin.RouterGroup) {
 	router.PATCH("/:sample_id/:panel_id", UpdateSamplePanel)
 	router.DELETE("/:sample_id/:panel_id", DeleteSamplePanel)
 	router.POST("/create-run", CreateRun)
+	router.GET("/stats", getStats)
 }

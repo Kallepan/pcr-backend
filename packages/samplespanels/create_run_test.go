@@ -1,12 +1,9 @@
 package samplespanels
 
 import (
-	"fmt"
-	"os"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"gitlab.com/kaka/pcr-backend/packages/projectpath"
 )
 
 func TestGetFormattedBirthdate(t *testing.T) {
@@ -35,19 +32,4 @@ func TestGetFormattedSampleID(t *testing.T) {
 
 	thirteenLetterSampleID := "1234567890123"
 	assert.Equal(t, "1234567890123", getFormattedSampleID(thirteenLetterSampleID))
-}
-
-func TestCreateCopy(t *testing.T) {
-	root := projectpath.Root
-	template := fmt.Sprintf("%s/templates/v1.xlsm", root)
-	println(os.Getwd())
-	outputPath, err := createCopy(template)
-
-	assert.Nil(t, err)
-	assert.NotEmpty(t, outputPath)
-
-	// Delete the file
-	err = os.Remove(*outputPath)
-
-	assert.Nil(t, err)
 }

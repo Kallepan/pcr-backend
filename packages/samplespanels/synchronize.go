@@ -111,16 +111,20 @@ func deleteOutdatedSamplesPanels(tx *sql.Tx) error {
 
 	_, err := tx.Exec(`
 	-- Delete all samplespanels entries by the sample_id where the first ten digits and the first three letters of the panel_id are the same except the youngest entry.
-	DELETE FROM samplespanels
-	WHERE (LEFT(panel_id, 3), LEFT(sample_id, 10), created_at) NOT IN (
-		 SELECT LEFT(panel_id, 3), LEFT(sample_id, 10), MAX(created_at)
-		 FROM samplespanels
-		 GROUP BY LEFT(panel_id,3) , LEFT(sample_id, 10)
-	) AND (LEFT(panel_id, 3), LEFT(sample_id, 10)) IN (
-		SELECT LEFT(panel_id, 3), LEFT(sample_id, 10)
-		FROM samplespanels
-		GROUP BY LEFT(panel_id, 3), LEFT(sample_id, 10)
+	DELETE FROM samplespanels sm
+	WHERE (LEFT(sm.panel_id, 3), LEFT(sm.sample_id, 10), sm.created_at) NOT IN (
+		 SELECT LEFT(sm.panel_id, 3), LEFT(sm.sample_id, 10), MAX(sm.created_at)
+		 FROM samplespanels sm
+		 GROUP BY LEFT(sm.panel_id,3) , LEFT(sm.sample_id, 10)
+	) AND (LEFT(sm.panel_id, 3), LEFT(sm.sample_id, 10)) IN (
+		SELECT LEFT(sm.panel_id, 3), LEFT(sm.sample_id, 10)
+		FROM samplespanels sm
+		GROUP BY LEFT(sm.panel_id, 3), LEFT(sm.sample_id, 10)
 		HAVING COUNT(*) > 1
+	) AND sm.sample_id IN (
+		SELECT sample_id
+		FROM samples
+		WHERE manual = true
 	);
 	`)
 
@@ -129,9 +133,7 @@ func deleteOutdatedSamplesPanels(tx *sql.Tx) error {
 
 func deleteEmptySamples(tx *sql.Tx) error {
 	/*
-		Delete all samples entries where the sample_id does not exist in the samplespanels table and older than 10 minutes.
-		This exists to clean up sampes which have no panels associated with them. The time delay is necessary if a sample
-		is created manually by the user and the panels are added later.
+		Delete all samples entries where the manual field is false and the sample_id is not in the samplespanels table.
 	*/
 
 	_, err := tx.Exec(`
@@ -139,7 +141,7 @@ func deleteEmptySamples(tx *sql.Tx) error {
 	WHERE sample_id NOT IN (
 		SELECT sample_id
 		FROM samplespanels
-	) AND created_at < NOW() - INTERVAL '10 minutes';
+	) AND manual = false;
 	`)
 
 	return err

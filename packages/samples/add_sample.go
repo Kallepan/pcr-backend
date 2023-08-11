@@ -48,7 +48,7 @@ func AddSample(ctx *gin.Context) {
 		WITH new_sample AS 
 		(
 			INSERT INTO samples (sample_id,full_name,sputalysed,comment,birthdate,created_by)
-			VALUES ($1, $2, $3, $4, $5, $6) RETURNING created_at, created_by)
+			VALUES ($1, $2, $3, $4, $5, $6, TRUE) RETURNING created_at, created_by, manual)
 			SELECT created_at, users.username
 			FROM new_sample
 			LEFT JOIN users ON new_sample.created_by = users.user_id`

@@ -34,7 +34,7 @@ func GetSamples(ctx *gin.Context) {
 	}
 	query += `
 		AND s.created_at >= current_date - interval '14 day'
-		GROUP BY s.sample_id, u.username ORDER BY s.created_at DESC, s.sample_id DESC;
+		GROUP BY s.sample_id, u.username ORDER BY s.created_at DESC, s.sample_id DESC LIMIT 1000;
 	`
 
 	rows, err := database.Instance.Query(query, params...)

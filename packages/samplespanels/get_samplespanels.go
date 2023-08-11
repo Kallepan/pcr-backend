@@ -9,7 +9,7 @@ import (
 	"gitlab.com/kaka/pcr-backend/common/models"
 )
 
-func buildGetQuery(sampleID string) (string, []interface{}) {
+func buildGetQuery(sampleID string, run_date string, run string, device string) (string, []interface{}) {
 	/*
 		Builds the query for getting samplespanels.
 		Params:
@@ -44,7 +44,25 @@ func buildGetQuery(sampleID string) (string, []interface{}) {
 		params = append(params, sampleID)
 	}
 
-	if sampleID == "" {
+	if run_date != "" {
+		query += fmt.Sprintf(" AND samplespanels.run_date = $%d", paramCounter)
+		paramCounter++
+		params = append(params, run_date)
+	}
+
+	if run != "" {
+		query += fmt.Sprintf(" AND samplespanels.run = $%d", paramCounter)
+		paramCounter++
+		params = append(params, run)
+	}
+
+	if device != "" {
+		query += fmt.Sprintf(" AND samplespanels.device = $%d", paramCounter)
+		paramCounter++
+		params = append(params, device)
+	}
+
+	if sampleID == "" && run_date == "" && run == "" && device == "" {
 		query += `
 		AND samplespanels.run IS NULL AND
 		samplespanels.device IS NULL AND
@@ -52,7 +70,7 @@ func buildGetQuery(sampleID string) (string, []interface{}) {
 	}
 
 	// Order by
-	query += " ORDER BY samplespanels.created_at DESC, samplespanels.sample_id DESC"
+	query += " ORDER BY samplespanels.created_at DESC, samplespanels.sample_id DESC LIMIT 100"
 
 	return query, params
 }
@@ -60,9 +78,12 @@ func buildGetQuery(sampleID string) (string, []interface{}) {
 func GetSamplesPanels(ctx *gin.Context) {
 	var samplespanels []models.SampleAnalysis
 
-	sample_id := ctx.Param("sample_id")
+	sample_id := ctx.Query("sample_id")
+	run_date := ctx.Query("run_date")
+	run := ctx.Query("run")
+	device := ctx.Query("device")
 
-	query, params := buildGetQuery(sample_id)
+	query, params := buildGetQuery(sample_id, run_date, run, device)
 
 	rows, err := database.Instance.Query(query, params...)
 

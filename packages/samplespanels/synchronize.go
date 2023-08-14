@@ -121,7 +121,7 @@ func deleteOutdatedSamplesPanels(tx *sql.Tx) error {
 		FROM samplespanels sm
 		GROUP BY LEFT(sm.panel_id, 3), LEFT(sm.sample_id, 10)
 		HAVING COUNT(*) > 1
-	) AND sm.sample_id IN (
+	) AND sm.sample_id NOT IN (
 		SELECT sample_id
 		FROM samples
 		WHERE manual = true

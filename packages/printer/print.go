@@ -1,6 +1,7 @@
 package printer
 
 import (
+	"database/sql"
 	"fmt"
 	"log"
 	"net"
@@ -19,9 +20,10 @@ A150,40,0,5,1,1,N,"%s"
 A30,0,0,2,1,1,N,"%s"
 A30,20,0,2,1,1,N,"%s"
 A30,50,0,2,1,1,N,"%s"
-A30,70,0,2,1,1,N,"%s"
+A30,70,0,2,1,1,N,"%s%s"
 A30,100,0,1,1,1,N,"%s"
-P1`
+P1
+`
 
 type PrintRequestElement struct {
 	SampleId string `json:"sample_id" binding:"required"`
@@ -42,19 +44,28 @@ type PrintData struct {
 	Date     string
 }
 
-func (pd PrintData) createLabel() string {
-	// Truncate the date to 10 characters
-	pd.Date = pd.Date[0:10]
-	label := fmt.Sprintf(template, pd.Position, pd.SampleId, pd.Name, pd.Panel, pd.Device+pd.Run, pd.Date)
-	regex := regexp.MustCompile("[[:^ascii:]]")
+func (pd PrintData) createLabel() (string, error) {
+	label := fmt.Sprintf(template, pd.Position, pd.SampleId, pd.Name, pd.Panel, pd.Device, pd.Run, pd.Date)
+
+	regex, err := regexp.Compile("[[:^ascii:]]")
+	if err != nil {
+		return "", err
+	}
+
 	label = regex.ReplaceAllString(label, "?")
 
 	// Return the formatted label
-	return label
+	return label, nil
 }
 
 func queryElement(sampleID string, panelID string) (*PrintData, error) {
 	var printData PrintData
+
+	var runDate sql.NullTime
+	var run sql.NullString
+	var device sql.NullString
+	var full_name sql.NullString
+	var position sql.NullString
 
 	query := `
 		SELECT position, run_date, samples.full_name, device, run
@@ -62,7 +73,35 @@ func queryElement(sampleID string, panelID string) (*PrintData, error) {
 		LEFT JOIN samples ON samplespanels.sample_id = samples.sample_id
 		WHERE samplespanels.sample_id = $1 AND panel_id = $2
 	`
-	err := database.Instance.QueryRow(query, sampleID, panelID).Scan(&printData.Position, &printData.Date, &printData.Name, &printData.Device, &printData.Run)
+
+	err := database.Instance.QueryRow(query, sampleID, panelID).Scan(&position, &runDate, &full_name, &device, &run)
+
+	// Parse the attributes
+	if runDate.Valid {
+		printData.Date = runDate.Time.Format("2006-01-02")
+	} else {
+		printData.Date = ""
+	}
+	if run.Valid {
+		printData.Run = run.String
+	} else {
+		printData.Run = ""
+	}
+	if device.Valid {
+		printData.Device = device.String
+	} else {
+		printData.Device = ""
+	}
+	if full_name.Valid {
+		printData.Name = full_name.String
+	} else {
+		printData.Name = ""
+	}
+	if position.Valid {
+		printData.Position = position.String
+	} else {
+		printData.Position = ""
+	}
 
 	return &printData, err
 }
@@ -94,14 +133,20 @@ func Print(ctx *gin.Context) {
 		}
 
 		// Generate the label string
-		label := printData.createLabel()
+		label, err := printData.createLabel()
+		if err != nil {
+			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
+			return
+		}
 
 		// Append the label to the slice
 		labels = append(labels, label)
 	}
 
 	// If no error occurred, send the labels to the printer
-	for _, label := range labels {
+	for i, label := range labels {
+		log.Println("Printing label", i+1)
+
 		_, err = conn.Write([]byte(label))
 		if err != nil {
 			log.Println(err.Error())

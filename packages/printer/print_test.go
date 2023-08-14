@@ -27,7 +27,8 @@ A30,20,0,2,1,1,N,"John Doe"
 A30,50,0,2,1,1,N,"Panel 1"
 A30,70,0,2,1,1,N,"Device 1Run 1"
 A30,100,0,1,1,1,N,"2020-01-01"
-P1`
+P1
+`
 
 var printData_two = PrintData{
 	Position: "N",
@@ -46,7 +47,8 @@ A30,20,0,2,1,1,N,"John Doe?"
 A30,50,0,2,1,1,N,"Panel 1"
 A30,70,0,2,1,1,N,"Device 1Run 1"
 A30,100,0,1,1,1,N,"2020-01-01"
-P1`
+P1
+`
 
 var labelTests = []labelTest{
 	{printData_one, expected_one},
@@ -56,7 +58,11 @@ var labelTests = []labelTest{
 // TestPrint tests the Print function
 func TestLabelCreation(t *testing.T) {
 	for _, lt := range labelTests {
-		actual := lt.printData.createLabel()
+		actual, err := lt.printData.createLabel()
+		if err != nil {
+			t.Errorf("error creating label: %s", err)
+		}
+
 		if actual != lt.expected {
 			t.Errorf("expected %s, actual %s", actual, lt.expected)
 		}

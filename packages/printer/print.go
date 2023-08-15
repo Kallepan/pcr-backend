@@ -14,7 +14,7 @@ import (
 
 var printerAddress = "bc-pcr2.labmed.de:9100"
 
-var template = `q256
+var globalTemplate = `q256
 N
 A150,40,0,5,1,1,N,"%s"
 A30,0,0,2,1,1,N,"%s"
@@ -26,8 +26,8 @@ P1
 `
 
 type PrintRequestElement struct {
-	SampleId string `json:"sample_id" binding:"required"`
-	PanelId  string `json:"panel_id" binding:"required"`
+	SampleID string `json:"sample_id" binding:"required"`
+	PanelID  string `json:"panel_id" binding:"required"`
 }
 
 type PrintRequest struct {
@@ -37,15 +37,15 @@ type PrintRequest struct {
 type PrintData struct {
 	Position string
 	Name     string
-	SampleId string
-	Panel    string
+	SampleID string
+	PanelID  string
 	Device   string
 	Run      string
 	Date     string
 }
 
-func (pd PrintData) createLabel() (string, error) {
-	label := fmt.Sprintf(template, pd.Position, pd.SampleId, pd.Name, pd.Panel, pd.Device, pd.Run, pd.Date)
+func (pd PrintData) createLabel(template string) (string, error) {
+	label := fmt.Sprintf(template, pd.Position, pd.SampleID, pd.Name, pd.PanelID, pd.Device, pd.Run, pd.Date)
 
 	regex, err := regexp.Compile("[[:^ascii:]]")
 	if err != nil {
@@ -126,14 +126,18 @@ func Print(ctx *gin.Context) {
 	var labels []string
 
 	for _, element := range request.Elements {
-		printData, err := queryElement(element.SampleId, element.PanelId)
+		printData, err := queryElement(element.SampleID, element.PanelID)
 		if err != nil {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 			return
 		}
 
+		// Set the sample ID and panel ID
+		printData.SampleID = element.SampleID
+		printData.PanelID = element.PanelID
+
 		// Generate the label string
-		label, err := printData.createLabel()
+		label, err := printData.createLabel(globalTemplate)
 		if err != nil {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 			return

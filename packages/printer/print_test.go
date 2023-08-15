@@ -12,12 +12,12 @@ type labelTest struct {
 
 var printData_one = PrintData{
 	Position: "N",
-	SampleId: "1234567890",
+	SampleID: "1234567890",
 	Name:     "John Doe",
-	Panel:    "Panel 1",
+	PanelID:  "Panel 1",
 	Device:   "Device 1",
 	Run:      "Run 1",
-	Date:     "2020-01-01T12:00:00.000Z",
+	Date:     "2020-01-01",
 }
 var expected_one = `q256
 N
@@ -32,12 +32,12 @@ P1
 
 var printData_two = PrintData{
 	Position: "N",
-	SampleId: "1234567890",
+	SampleID: "1234567890",
 	Name:     "John Doeä",
-	Panel:    "Panel 1",
+	PanelID:  "Panel 1",
 	Device:   "Device 1",
 	Run:      "Run 1",
-	Date:     "2020-01-01T12:00:00.000Z",
+	Date:     "2020-01-01",
 }
 var expected_two = `q256
 N
@@ -58,7 +58,7 @@ var labelTests = []labelTest{
 // TestPrint tests the Print function
 func TestLabelCreation(t *testing.T) {
 	for _, lt := range labelTests {
-		actual, err := lt.printData.createLabel()
+		actual, err := lt.printData.createLabel(globalTemplate)
 		if err != nil {
 			t.Errorf("error creating label: %s", err)
 		}

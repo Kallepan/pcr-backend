@@ -26,6 +26,7 @@ type PostElementData struct {
 type CreateRunRequest struct {
 	Device       string            `json:"device" binding:"required"`
 	Run          string            `json:"run" binding:"required"`
+	Date         string            `json:"date" binding:"required"`
 	PostElements []PostElementData `json:"elements" binding:"required"`
 }
 
@@ -69,19 +70,25 @@ func getFormattedSampleID(sampleID string) string {
 	return formattedSampleID
 }
 
-func UpdateSampleAnalysisInDatabase(tx *sql.Tx, sampleId string, panelId string, run string, device string) error {
+func UpdateSampleAnalysisInDatabase(tx *sql.Tx, sampleId string, panelId string, run string, device string, date string) (*int, error) {
 	query := `
 		UPDATE samplespanels
 		SET
 			run = $1,
-			device = $2
+			device = $2,
+			run_date = $3
 		WHERE
-			sample_id = $3 AND
-			panel_id = $4;
+			sample_id = $4 AND
+			panel_id = $5
+		RETURNING position
 		`
+	var position int
 
-	_, err := tx.Exec(query, run, device, sampleId, panelId)
-	return err
+	if err := tx.QueryRow(query, run, device, date, sampleId, panelId).Scan(&position); err != nil {
+		return nil, err
+	}
+
+	return &position, nil
 }
 
 func GetPositionForSampleAnalysis(tx *sql.Tx, sampleId string, panelId string) (*int, error) {
@@ -239,14 +246,7 @@ func CreateRun(ctx *gin.Context) {
 
 		// SampleAnalysis
 		// Insert data into database -> position is auto incremented in the database
-		if err := UpdateSampleAnalysisInDatabase(tx, exportDataElement.sample.SampleId, exportDataElement.panel.PanelId, request.Run, request.Device); err != nil {
-			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
-			tx.Rollback()
-			return
-		}
-
-		// Get position from database
-		position, err := GetPositionForSampleAnalysis(tx, exportDataElement.sample.SampleId, exportDataElement.panel.PanelId)
+		position, err := UpdateSampleAnalysisInDatabase(tx, exportDataElement.sample.SampleId, exportDataElement.panel.PanelId, request.Run, request.Device, request.Date)
 		if err != nil {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 			tx.Rollback()
@@ -303,7 +303,7 @@ func CreateRun(ctx *gin.Context) {
 	}
 
 	// Insert metadata into excel file
-	file.SetCellValue("Lauf", "B9", time.Now().Format("02.01.2006"))
+	file.SetCellValue("Lauf", "B9", request.Date)
 	file.SetCellValue("Lauf", "C9", request.Device)
 	file.SetCellValue("Lauf", "D9", request.Run)
 

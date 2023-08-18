@@ -80,15 +80,19 @@ func synchronizeSamples(tx *sql.Tx) error {
 			FROM users
 			LIMIT 1
 		) users ON 1=1
-		WHERE ingenious.barcode IS NOT NULL AND ingenious.patient IS NOT NULL
+		WHERE ingenious.barcode IS NOT NULL AND
+		ingenious.patient IS NOT NULL
 	) 
 	INSERT INTO samplespanels (sample_id, panel_id, created_by)
 		SELECT DISTINCT filtered_samples.barcode, filtered_samples.panel_id, filtered_samples.user_id
 		FROM filtered_samples
 		LEFT JOIN samplespanels
-		ON samplespanels.sample_id = filtered_samples.barcode AND
-		samplespanels.panel_id = filtered_samples.panel_id
-		WHERE samplespanels.sample_id IS NULL AND  samplespanels.panel_id IS NULL;
+		ON 
+			samplespanels.sample_id = filtered_samples.barcode AND
+			samplespanels.panel_id = filtered_samples.panel_id
+		WHERE 
+			samplespanels.sample_id IS NULL AND
+			samplespanels.panel_id IS NULL;
 	`)
 
 	return err
@@ -111,6 +115,7 @@ func deleteOutdatedSamplesPanels(tx *sql.Tx) error {
 
 	_, err := tx.Exec(`
 	-- Delete all samplespanels entries by the sample_id where the first ten digits and the first three letters of the panel_id are the same except the youngest entry.
+	WITH deleted_samplespanels AS ( 
 	DELETE FROM samplespanels sm
 	WHERE (LEFT(sm.panel_id, 3), LEFT(sm.sample_id, 10), sm.created_at) NOT IN (
 		 SELECT LEFT(sm.panel_id, 3), LEFT(sm.sample_id, 10), MAX(sm.created_at)
@@ -125,7 +130,15 @@ func deleteOutdatedSamplesPanels(tx *sql.Tx) error {
 		SELECT sample_id
 		FROM samples
 		WHERE manual = true
-	);
+	) RETURNING sample_id, panel_id, run, device, position, run_date)
+	-- Update the new samplespanels entries with the deleted samplespanels entries
+	UPDATE samplespanels sm
+	SET run = deleted_samplespanels.run,
+		device = deleted_samplespanels.device,
+		position = deleted_samplespanels.position,
+		run_date = deleted_samplespanels.run_date
+	FROM deleted_samplespanels
+	WHERE LEFT(sm.sample_id,10) = LEFT(deleted_samplespanels.sample_id,10) AND LEFT(sm.panel_id,3) = LEFT(deleted_samplespanels.panel_id,3);
 	`)
 
 	return err

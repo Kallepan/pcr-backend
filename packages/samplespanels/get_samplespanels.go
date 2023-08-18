@@ -70,7 +70,7 @@ func buildGetQuery(sampleID string, run_date string, run string, device string) 
 	}
 
 	// Order by
-	query += " ORDER BY samplespanels.created_at DESC, samplespanels.sample_id DESC LIMIT 100"
+	query += " ORDER BY samplespanels.created_at ASC, samplespanels.sample_id DESC LIMIT 100"
 
 	return query, params
 }

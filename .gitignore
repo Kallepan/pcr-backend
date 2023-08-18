@@ -17,4 +17,4 @@
 *.env
 
 run.yaml
-0007_test.up.sql
+*_test.up.sql

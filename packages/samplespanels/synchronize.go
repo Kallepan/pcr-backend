@@ -130,13 +130,14 @@ func deleteOutdatedSamplesPanels(tx *sql.Tx) error {
 		SELECT sample_id
 		FROM samples
 		WHERE manual = true
-	) RETURNING sample_id, panel_id, run, device, position, run_date)
+	) RETURNING sample_id, panel_id, run, device, position, run_date, deleted)
 	-- Update the new samplespanels entries with the deleted samplespanels entries
 	UPDATE samplespanels sm
 	SET run = deleted_samplespanels.run,
 		device = deleted_samplespanels.device,
 		position = deleted_samplespanels.position,
-		run_date = deleted_samplespanels.run_date
+		run_date = deleted_samplespanels.run_date,
+		deleted = deleted_samplespanels.deleted
 	FROM deleted_samplespanels
 	WHERE LEFT(sm.sample_id,10) = LEFT(deleted_samplespanels.sample_id,10) AND LEFT(sm.panel_id,3) = LEFT(deleted_samplespanels.panel_id,3);
 	`)

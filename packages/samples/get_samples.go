@@ -18,7 +18,7 @@ func GetSamples(ctx *gin.Context) {
 	var params []interface{}
 
 	query := `
-		SELECT s.sample_id,s.full_name,s.birthdate,s.sputalysed,s.comment,s.created_at,u.username, string_agg(samplespanels.panel_id, ', ') AS panels
+		SELECT s.sample_id, s.full_name, s.birthdate, s.sputalysed, s.comment,s.created_at, u.username, s.material, string_agg(samplespanels.panel_id, ', ') AS panels
 		FROM samples s
 		LEFT JOIN users u ON s.created_by = u.user_id
 		LEFT JOIN samplespanels ON samplespanels.sample_id = s.sample_id AND samplespanels.deleted = false
@@ -47,7 +47,15 @@ func GetSamples(ctx *gin.Context) {
 	for rows.Next() {
 		var sample models.Sample
 		var panels sql.NullString
-		if err := rows.Scan(&sample.SampleId, &sample.FullName, &sample.Birthdate, &sample.Sputalysed, &sample.Comment, &sample.CreatedAt, &sample.CreatedBy, &panels); err != nil {
+		if err := rows.Scan(&sample.SampleId,
+			&sample.FullName,
+			&sample.Birthdate,
+			&sample.Sputalysed,
+			&sample.Comment,
+			&sample.CreatedAt,
+			&sample.CreatedBy,
+			&sample.Material,
+			&panels); err != nil {
 			ctx.AbortWithStatusJSON(http.StatusInternalServerError, gin.H{"message": err.Error()})
 			return
 		}

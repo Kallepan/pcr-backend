@@ -58,8 +58,8 @@ func synchronizeSamples(tx *sql.Tx) error {
 	*/
 
 	_, err := tx.Exec(`
-	INSERT INTO samples (sample_id, birthdate, full_name, created_by)
-		SELECT DISTINCT ON (ingenious.barcode, ingenious.birthdate, ingenious.patient) ingenious.barcode, ingenious.birthdate, ingenious.patient, users.user_id
+	INSERT INTO samples (sample_id, birthdate, full_name, material, created_by)
+		SELECT DISTINCT ON (ingenious.barcode, ingenious.birthdate, ingenious.patient) ingenious.barcode, ingenious.birthdate, ingenious.patient, ingenious.specimen, users.user_id
 		FROM ingenious
 		LEFT JOIN samples ON samples.sample_id = ingenious.barcode
 		LEFT JOIN (

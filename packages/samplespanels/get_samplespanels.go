@@ -24,13 +24,14 @@ func buildGetQuery(sampleID string, run_date string, run string, device string) 
 
 	query := `
 	WITH sample_query AS (
-		SELECT samplespanels.sample_id, samples.full_name, samples.created_at, users.username AS created_by
+		SELECT samplespanels.sample_id, samples.full_name, samples.created_at, users.username AS created_by, samples.material 
 		FROM samplespanels
 		LEFT JOIN samples ON samplespanels.sample_id = samples.sample_id
 		LEFT JOIN users ON samples.created_by = users.user_id
-		GROUP BY samplespanels.sample_id, samples.full_name, samples.created_at, users.username
+		GROUP BY samplespanels.sample_id, samples.full_name, samples.created_at, users.username, samples.material
 	) 
-	SELECT samplespanels.sample_id, sample_query.full_name, sample_query.created_at, sample_query.created_by, samplespanels.panel_id, panels.display_name, panels.ready_mix, samplespanels.run, samplespanels.device, samplespanels.position, samplespanels.run_date, samplespanels.created_at, users.username
+	SELECT samplespanels.sample_id, sample_query.full_name, sample_query.created_at, sample_query.created_by, sample_query.material, 
+	samplespanels.panel_id, panels.display_name, panels.ready_mix, samplespanels.run, samplespanels.device, samplespanels.position, samplespanels.run_date, samplespanels.created_at, users.username
 	FROM samplespanels
 	LEFT JOIN sample_query ON samplespanels.sample_id = sample_query.sample_id
 	LEFT JOIN panels ON samplespanels.panel_id = panels.panel_id
@@ -98,7 +99,7 @@ func GetSamplesPanels(ctx *gin.Context) {
 		var panel models.Panel
 
 		if err := rows.Scan(
-			&sample.SampleId, &sample.FullName, &sample.CreatedAt, &sample.CreatedBy,
+			&sample.SampleId, &sample.FullName, &sample.CreatedAt, &sample.CreatedBy, &sample.Material,
 			&panel.PanelId, &panel.DisplayName, &panel.ReadyMix,
 			&sampleAnalysis.Run, &sampleAnalysis.Device, &sampleAnalysis.Position, &sampleAnalysis.RunDate, &sampleAnalysis.CreatedAt, &sampleAnalysis.CreatedBy); err != nil {
 

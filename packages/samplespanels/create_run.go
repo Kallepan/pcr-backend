@@ -262,7 +262,7 @@ func CreateRun(ctx *gin.Context) {
 
 		// Get formatted name
 		name := getFormattedName(exportDataElement.sample.FullName)
-
+		material := exportDataElement.sample.Material
 		// Check if birthdate is not nil
 		birthdate := getFormattedBirthdate(exportDataElement.sample.Birthdate)
 
@@ -271,7 +271,7 @@ func CreateRun(ctx *gin.Context) {
 		file.SetCellValue(
 			"Lauf",
 			fmt.Sprintf("B%d", idx+12),
-			fmt.Sprintf("%s, %s - %s", formattedSampleID, name, birthdate),
+			fmt.Sprintf("%s, %s (%s)- %s", formattedSampleID, name, *material, birthdate),
 		)
 		file.SetCellValue(
 			"Lauf",

@@ -9,6 +9,7 @@ import (
 	"gitlab.com/kaka/pcr-backend/common/database"
 	"gitlab.com/kaka/pcr-backend/common/middlewares"
 	"gitlab.com/kaka/pcr-backend/jwt"
+	"gitlab.com/kaka/pcr-backend/packages/importer"
 	"gitlab.com/kaka/pcr-backend/packages/panels"
 	"gitlab.com/kaka/pcr-backend/packages/printer"
 	"gitlab.com/kaka/pcr-backend/packages/samples"
@@ -61,6 +62,9 @@ func initRouter() *gin.Engine {
 
 		// ping
 		v1.GET("/ping", controllers.Ping)
+
+		// importer
+		v1.POST("/import", importer.PostSampleMaterial)
 	}
 
 	secured := router.Group("/api/v1")

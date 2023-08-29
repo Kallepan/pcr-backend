@@ -271,12 +271,12 @@ func CreateRun(ctx *gin.Context) {
 		file.SetCellValue(
 			"Lauf",
 			fmt.Sprintf("B%d", idx+12),
-			fmt.Sprintf("%s, %s (%s)- %s", formattedSampleID, name, *material, birthdate),
+			fmt.Sprintf("%s, %s - %s", formattedSampleID, name, birthdate),
 		)
 		file.SetCellValue(
 			"Lauf",
 			fmt.Sprintf("C%d", idx+12),
-			exportDataElement.panel.DisplayName,
+			fmt.Sprintf("%s (%s)", exportDataElement.panel.DisplayName, *material),
 		)
 
 		// Write runid to cell

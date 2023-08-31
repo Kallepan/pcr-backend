@@ -3,7 +3,7 @@ package test
 import (
 	"bytes"
 	"encoding/json"
-	"io/ioutil"
+	"io"
 	"net/http"
 	"net/http/httptest"
 	"net/url"
@@ -53,5 +53,5 @@ func MockJsonPost(ctx *gin.Context, params gin.Params, u url.Values, content int
 		panic(err)
 	}
 
-	ctx.Request.Body = ioutil.NopCloser(bytes.NewReader(jsonbytes))
+	ctx.Request.Body = io.NopCloser(bytes.NewReader(jsonbytes))
 }

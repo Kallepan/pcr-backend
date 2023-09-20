@@ -16,6 +16,9 @@ type Initialization struct {
 	importRepo repository.ImportRepository
 	importSvc  service.ImportService
 	ImportCtrl controller.ImportController
+	printRepo  repository.PrintRepository
+	printSvc   service.PrintService
+	PrintCtrl  controller.PrintController
 }
 
 func NewInitialization(
@@ -28,6 +31,9 @@ func NewInitialization(
 	importRepo repository.ImportRepository,
 	importSvc service.ImportService,
 	importCtrl controller.ImportController,
+	printRepo repository.PrintRepository,
+	printSvc service.PrintService,
+	printCtrl controller.PrintController,
 ) *Initialization {
 	return &Initialization{
 		sysRepo:    sysRepo,
@@ -39,5 +45,8 @@ func NewInitialization(
 		importRepo: importRepo,
 		importSvc:  importSvc,
 		ImportCtrl: importCtrl,
+		printRepo:  printRepo,
+		printSvc:   printSvc,
+		PrintCtrl:  printCtrl,
 	}
 }

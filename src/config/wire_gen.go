@@ -25,7 +25,10 @@ func Init() *Initialization {
 	importRepositoryImpl := repository.ImportRepositoryInit()
 	importServiceImpl := service.ImportServiceInit(importRepositoryImpl)
 	importControllerImpl := controller.ImportControllerInit(importServiceImpl)
-	initialization := NewInitialization(systemRepositoryImpl, systemServiceImpl, systemControllerImpl, userRepositoryImpl, userServiceImpl, userControllerImpl, importRepositoryImpl, importServiceImpl, importControllerImpl)
+	printRepositoryImpl := repository.PrintRepositoryInit()
+	printServiceImpl := service.PrintServiceInit(printRepositoryImpl)
+	printControllerImpl := controller.PrintControllerInit(printServiceImpl)
+	initialization := NewInitialization(systemRepositoryImpl, systemServiceImpl, systemControllerImpl, userRepositoryImpl, userServiceImpl, userControllerImpl, importRepositoryImpl, importServiceImpl, importControllerImpl, printRepositoryImpl, printServiceImpl, printControllerImpl)
 	return initialization
 }
 
@@ -50,4 +53,11 @@ var (
 	importRepoSet  = wire.NewSet(repository.ImportRepositoryInit, wire.Bind(new(repository.ImportRepository), new(*repository.ImportRepositoryImpl)))
 	importSvcSet   = wire.NewSet(service.ImportServiceInit, wire.Bind(new(service.ImportService), new(*service.ImportServiceImpl)))
 	importCtrlrSet = wire.NewSet(controller.ImportControllerInit, wire.Bind(new(controller.ImportController), new(*controller.ImportControllerImpl)))
+)
+
+/* Print */
+var (
+	printRepoSet  = wire.NewSet(repository.PrintRepositoryInit, wire.Bind(new(repository.PrintRepository), new(*repository.PrintRepositoryImpl)))
+	printSvcSet   = wire.NewSet(service.PrintServiceInit, wire.Bind(new(service.PrintService), new(*service.PrintServiceImpl)))
+	printCtrlrSet = wire.NewSet(controller.PrintControllerInit, wire.Bind(new(controller.PrintController), new(*controller.PrintControllerImpl)))
 )

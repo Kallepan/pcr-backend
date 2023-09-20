@@ -25,6 +25,9 @@ func Init(init *config.Initialization) *gin.Engine {
 
 		// Import
 		api.POST("/import", init.ImportCtrl.ImportSample)
+
+		// Print
+		api.POST("/printer", init.PrintCtrl.PrintSample)
 	}
 
 	return router

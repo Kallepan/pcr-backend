@@ -50,6 +50,19 @@ var (
 	)
 )
 
+/* Print */
+var (
+	printRepoSet = wire.NewSet(repository.PrintRepositoryInit,
+		wire.Bind(new(repository.PrintRepository), new(*repository.PrintRepositoryImpl)),
+	)
+	printSvcSet = wire.NewSet(service.PrintServiceInit,
+		wire.Bind(new(service.PrintService), new(*service.PrintServiceImpl)),
+	)
+	printCtrlrSet = wire.NewSet(controller.PrintControllerInit,
+		wire.Bind(new(controller.PrintController), new(*controller.PrintControllerImpl)),
+	)
+)
+
 func Init() *Initialization {
 	wire.Build(
 		NewInitialization,
@@ -62,6 +75,9 @@ func Init() *Initialization {
 		importRepoSet,
 		importSvcSet,
 		importCtrlrSet,
+		printRepoSet,
+		printSvcSet,
+		printCtrlrSet,
 	)
 	return nil
 }

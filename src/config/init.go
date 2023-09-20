@@ -22,6 +22,9 @@ type Initialization struct {
 	panelRepo  repository.PanelRepository
 	panelSvc   service.PanelService
 	PanelCtrl  controller.PanelController
+	sampleRepo repository.SampleRepository
+	sampleSvc  service.SampleService
+	SampleCtrl controller.SampleController
 }
 
 func NewInitialization(
@@ -40,6 +43,9 @@ func NewInitialization(
 	panelRepo repository.PanelRepository,
 	panelSvc service.PanelService,
 	panelCtrl controller.PanelController,
+	sampleRepo repository.SampleRepository,
+	sampleSvc service.SampleService,
+	sampleCtrl controller.SampleController,
 ) *Initialization {
 	return &Initialization{
 		sysRepo:    sysRepo,
@@ -57,5 +63,8 @@ func NewInitialization(
 		panelRepo:  panelRepo,
 		panelSvc:   panelSvc,
 		PanelCtrl:  panelCtrl,
+		sampleRepo: sampleRepo,
+		sampleSvc:  sampleSvc,
+		SampleCtrl: sampleCtrl,
 	}
 }

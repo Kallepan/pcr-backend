@@ -76,6 +76,19 @@ var (
 	)
 )
 
+/* Sample */
+var (
+	sampleRepoSet = wire.NewSet(repository.SampleRepositoryInit,
+		wire.Bind(new(repository.SampleRepository), new(*repository.SampleRepositoryImpl)),
+	)
+	sampleSvcSet = wire.NewSet(service.SampleServiceInit,
+		wire.Bind(new(service.SampleService), new(*service.SampleServiceImpl)),
+	)
+	sampleCtrlrSet = wire.NewSet(controller.SampleControllerInit,
+		wire.Bind(new(controller.SampleController), new(*controller.SampleControllerImpl)),
+	)
+)
+
 func Init() *Initialization {
 	wire.Build(
 		NewInitialization,
@@ -94,6 +107,9 @@ func Init() *Initialization {
 		panelRepoSet,
 		panelSvcSet,
 		panelCtrlrSet,
+		sampleRepoSet,
+		sampleSvcSet,
+		sampleCtrlrSet,
 	)
 	return nil
 }

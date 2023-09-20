@@ -25,12 +25,23 @@ func Init(init *config.Initialization) *gin.Engine {
 
 		// Import
 		api.POST("/import", init.ImportCtrl.ImportSample)
+	}
 
+	secured := router.Group("/api/v1")
+	secured.Use(middleware.AuthMiddleware())
+	{
 		// Print
-		api.POST("/printer", init.PrintCtrl.PrintSample)
+		secured.POST("/printer", init.PrintCtrl.PrintSample)
 
 		// Panels
-		api.GET("/panels", init.PanelCtrl.GetPanels)
+		secured.GET("/panels", init.PanelCtrl.GetPanels)
+
+		// Samples
+		samples := secured.Group("/samples")
+		samples.GET("", init.SampleCtrl.GetSamples)
+		samples.POST("", init.SampleCtrl.AddSample)
+		samples.PUT("/:sample_id", init.SampleCtrl.UpdateSample)
+		samples.DELETE("/:sample_id", init.SampleCtrl.DeleteSample)
 	}
 
 	return router

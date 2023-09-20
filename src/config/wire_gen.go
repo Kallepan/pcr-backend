@@ -31,7 +31,10 @@ func Init() *Initialization {
 	printControllerImpl := controller.PrintControllerInit(printServiceImpl)
 	panelServiceImpl := service.PanelServiceInit(panelRepositoryImpl)
 	panelControllerImpl := controller.PanelControllerInit(panelServiceImpl)
-	initialization := NewInitialization(systemRepositoryImpl, systemServiceImpl, systemControllerImpl, userRepositoryImpl, userServiceImpl, userControllerImpl, importRepositoryImpl, importServiceImpl, importControllerImpl, printRepositoryImpl, printServiceImpl, printControllerImpl, panelRepositoryImpl, panelServiceImpl, panelControllerImpl)
+	sampleRepositoryImpl := repository.SampleRepositoryInit()
+	sampleServiceImpl := service.SampleServiceInit(sampleRepositoryImpl)
+	sampleControllerImpl := controller.SampleControllerInit(sampleServiceImpl)
+	initialization := NewInitialization(systemRepositoryImpl, systemServiceImpl, systemControllerImpl, userRepositoryImpl, userServiceImpl, userControllerImpl, importRepositoryImpl, importServiceImpl, importControllerImpl, printRepositoryImpl, printServiceImpl, printControllerImpl, panelRepositoryImpl, panelServiceImpl, panelControllerImpl, sampleRepositoryImpl, sampleServiceImpl, sampleControllerImpl)
 	return initialization
 }
 
@@ -70,4 +73,11 @@ var (
 	panelRepoSet  = wire.NewSet(repository.PanelRepositoryInit, wire.Bind(new(repository.PanelRepository), new(*repository.PanelRepositoryImpl)))
 	panelSvcSet   = wire.NewSet(service.PanelServiceInit, wire.Bind(new(service.PanelService), new(*service.PanelServiceImpl)))
 	panelCtrlrSet = wire.NewSet(controller.PanelControllerInit, wire.Bind(new(controller.PanelController), new(*controller.PanelControllerImpl)))
+)
+
+/* Sample */
+var (
+	sampleRepoSet  = wire.NewSet(repository.SampleRepositoryInit, wire.Bind(new(repository.SampleRepository), new(*repository.SampleRepositoryImpl)))
+	sampleSvcSet   = wire.NewSet(service.SampleServiceInit, wire.Bind(new(service.SampleService), new(*service.SampleServiceImpl)))
+	sampleCtrlrSet = wire.NewSet(controller.SampleControllerInit, wire.Bind(new(controller.SampleController), new(*controller.SampleControllerImpl)))
 )

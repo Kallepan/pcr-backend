@@ -28,6 +28,9 @@ func Init(init *config.Initialization) *gin.Engine {
 
 		// Print
 		api.POST("/printer", init.PrintCtrl.PrintSample)
+
+		// Panels
+		api.GET("/panels", init.PanelCtrl.GetPanels)
 	}
 
 	return router

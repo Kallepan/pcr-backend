@@ -16,11 +16,13 @@ type ImportService interface {
 
 type ImportServiceImpl struct {
 	importRepository repository.ImportRepository
+	panelRepository  repository.PanelRepository
 }
 
-func ImportServiceInit(importRepository repository.ImportRepository) *ImportServiceImpl {
+func ImportServiceInit(importRepository repository.ImportRepository, panelRepository repository.PanelRepository) *ImportServiceImpl {
 	return &ImportServiceImpl{
 		importRepository: importRepository,
+		panelRepository:  panelRepository,
 	}
 }
 
@@ -41,7 +43,7 @@ func (i ImportServiceImpl) ImportSamplePanel(ctx *gin.Context) {
 			slog.Error("Error validating sample panel", err)
 			pkg.PanicException(constant.InvalidRequest)
 		}
-		if !i.importRepository.PanelExists(samplePanel.PanelID) {
+		if !i.panelRepository.PanelExists(samplePanel.PanelID) {
 			slog.Error("Panel does not exist")
 			pkg.PanicException(constant.InvalidRequest)
 		}

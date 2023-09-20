@@ -19,6 +19,9 @@ type Initialization struct {
 	printRepo  repository.PrintRepository
 	printSvc   service.PrintService
 	PrintCtrl  controller.PrintController
+	panelRepo  repository.PanelRepository
+	panelSvc   service.PanelService
+	PanelCtrl  controller.PanelController
 }
 
 func NewInitialization(
@@ -34,6 +37,9 @@ func NewInitialization(
 	printRepo repository.PrintRepository,
 	printSvc service.PrintService,
 	printCtrl controller.PrintController,
+	panelRepo repository.PanelRepository,
+	panelSvc service.PanelService,
+	panelCtrl controller.PanelController,
 ) *Initialization {
 	return &Initialization{
 		sysRepo:    sysRepo,
@@ -48,5 +54,8 @@ func NewInitialization(
 		printRepo:  printRepo,
 		printSvc:   printSvc,
 		PrintCtrl:  printCtrl,
+		panelRepo:  panelRepo,
+		panelSvc:   panelSvc,
+		PanelCtrl:  panelCtrl,
 	}
 }

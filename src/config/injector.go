@@ -63,6 +63,19 @@ var (
 	)
 )
 
+/* Panel */
+var (
+	panelRepoSet = wire.NewSet(repository.PanelRepositoryInit,
+		wire.Bind(new(repository.PanelRepository), new(*repository.PanelRepositoryImpl)),
+	)
+	panelSvcSet = wire.NewSet(service.PanelServiceInit,
+		wire.Bind(new(service.PanelService), new(*service.PanelServiceImpl)),
+	)
+	panelCtrlrSet = wire.NewSet(controller.PanelControllerInit,
+		wire.Bind(new(controller.PanelController), new(*controller.PanelControllerImpl)),
+	)
+)
+
 func Init() *Initialization {
 	wire.Build(
 		NewInitialization,
@@ -78,6 +91,9 @@ func Init() *Initialization {
 		printRepoSet,
 		printSvcSet,
 		printCtrlrSet,
+		panelRepoSet,
+		panelSvcSet,
+		panelCtrlrSet,
 	)
 	return nil
 }

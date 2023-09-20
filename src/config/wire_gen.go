@@ -23,12 +23,15 @@ func Init() *Initialization {
 	userServiceImpl := service.UserServiceInit(userRepositoryImpl)
 	userControllerImpl := controller.UserControllerInit(userServiceImpl)
 	importRepositoryImpl := repository.ImportRepositoryInit()
-	importServiceImpl := service.ImportServiceInit(importRepositoryImpl)
+	panelRepositoryImpl := repository.PanelRepositoryInit()
+	importServiceImpl := service.ImportServiceInit(importRepositoryImpl, panelRepositoryImpl)
 	importControllerImpl := controller.ImportControllerInit(importServiceImpl)
 	printRepositoryImpl := repository.PrintRepositoryInit()
 	printServiceImpl := service.PrintServiceInit(printRepositoryImpl)
 	printControllerImpl := controller.PrintControllerInit(printServiceImpl)
-	initialization := NewInitialization(systemRepositoryImpl, systemServiceImpl, systemControllerImpl, userRepositoryImpl, userServiceImpl, userControllerImpl, importRepositoryImpl, importServiceImpl, importControllerImpl, printRepositoryImpl, printServiceImpl, printControllerImpl)
+	panelServiceImpl := service.PanelServiceInit(panelRepositoryImpl)
+	panelControllerImpl := controller.PanelControllerInit(panelServiceImpl)
+	initialization := NewInitialization(systemRepositoryImpl, systemServiceImpl, systemControllerImpl, userRepositoryImpl, userServiceImpl, userControllerImpl, importRepositoryImpl, importServiceImpl, importControllerImpl, printRepositoryImpl, printServiceImpl, printControllerImpl, panelRepositoryImpl, panelServiceImpl, panelControllerImpl)
 	return initialization
 }
 
@@ -60,4 +63,11 @@ var (
 	printRepoSet  = wire.NewSet(repository.PrintRepositoryInit, wire.Bind(new(repository.PrintRepository), new(*repository.PrintRepositoryImpl)))
 	printSvcSet   = wire.NewSet(service.PrintServiceInit, wire.Bind(new(service.PrintService), new(*service.PrintServiceImpl)))
 	printCtrlrSet = wire.NewSet(controller.PrintControllerInit, wire.Bind(new(controller.PrintController), new(*controller.PrintControllerImpl)))
+)
+
+/* Panel */
+var (
+	panelRepoSet  = wire.NewSet(repository.PanelRepositoryInit, wire.Bind(new(repository.PanelRepository), new(*repository.PanelRepositoryImpl)))
+	panelSvcSet   = wire.NewSet(service.PanelServiceInit, wire.Bind(new(service.PanelService), new(*service.PanelServiceImpl)))
+	panelCtrlrSet = wire.NewSet(controller.PanelControllerInit, wire.Bind(new(controller.PanelController), new(*controller.PanelControllerImpl)))
 )

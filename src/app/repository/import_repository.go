@@ -10,7 +10,6 @@ import (
 
 type ImportRepository interface {
 	Save(sample []dco.SamplePanel) error
-	PanelExists(panelID string) bool
 }
 
 type ImportRepositoryImpl struct {
@@ -21,25 +20,6 @@ func ImportRepositoryInit() *ImportRepositoryImpl {
 	return &ImportRepositoryImpl{
 		db: driver.DB,
 	}
-}
-
-func (i ImportRepositoryImpl) PanelExists(panelID string) bool {
-	/* Returns true if panel exists */
-	query := `
-		SELECT EXISTS(
-			SELECT panel_id
-			FROM panels
-			WHERE panel_id = $1
-		)
-	`
-	var exists bool
-	err := i.db.QueryRow(query, panelID).Scan(&exists)
-	if err != nil {
-		slog.Error("Error checking if panel exists", err)
-		return false
-	}
-
-	return exists
 }
 
 func (i ImportRepositoryImpl) Save(sample []dco.SamplePanel) error {

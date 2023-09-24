@@ -16,6 +16,7 @@ func CreateAdminUser() {
 	user.LastName = "admin"
 	user.Username = os.Getenv("ADMIN_USERNAME")
 	user.Password = os.Getenv("ADMIN_PASSWORD")
+	user.HashPassword()
 
 	query := `
 		INSERT INTO users (email, firstname, lastname, username, password, is_admin)

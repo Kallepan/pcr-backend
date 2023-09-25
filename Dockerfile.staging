@@ -2,12 +2,12 @@ FROM golang:alpine AS builder
 
 WORKDIR /project/pcr-backend
 
-COPY go.* ./
+COPY src/go.* .
 
 RUN go mod download
 
-COPY . .
-RUN go build -o /project/pcr-backend/build/main cmd/main.go
+COPY src .
+RUN go build -o /project/pcr-backend/build/main main.go
 
 FROM alpine:latest
 COPY --from=builder /project/pcr-backend/build/main /app/build/main

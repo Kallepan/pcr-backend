@@ -34,7 +34,13 @@ func Init() *Initialization {
 	sampleRepositoryImpl := repository.SampleRepositoryInit()
 	sampleServiceImpl := service.SampleServiceInit(sampleRepositoryImpl)
 	sampleControllerImpl := controller.SampleControllerInit(sampleServiceImpl)
-	initialization := NewInitialization(systemRepositoryImpl, systemServiceImpl, systemControllerImpl, userRepositoryImpl, userServiceImpl, userControllerImpl, importRepositoryImpl, importServiceImpl, importControllerImpl, printRepositoryImpl, printServiceImpl, printControllerImpl, panelRepositoryImpl, panelServiceImpl, panelControllerImpl, sampleRepositoryImpl, sampleServiceImpl, sampleControllerImpl)
+	synchronizeRepositoryImpl := repository.SynchronizeRepositoryInit()
+	samplePanelRepositoryImpl := repository.SamplePanelRepositoryInit()
+	samplePanelServiceImpl := service.SamplePanelServiceInit(samplePanelRepositoryImpl, sampleRepositoryImpl, panelRepositoryImpl)
+	runRepositoryImpl := repository.RunRepositoryInit()
+	runServiceImpl := service.RunServiceInit(runRepositoryImpl, sampleRepositoryImpl, panelRepositoryImpl)
+	samplePanelControllerImpl := controller.SamplePanelControllerInit(samplePanelServiceImpl, runServiceImpl)
+	initialization := NewInitialization(systemRepositoryImpl, systemServiceImpl, systemControllerImpl, userRepositoryImpl, userServiceImpl, userControllerImpl, importRepositoryImpl, importServiceImpl, importControllerImpl, printRepositoryImpl, printServiceImpl, printControllerImpl, panelRepositoryImpl, panelServiceImpl, panelControllerImpl, sampleRepositoryImpl, sampleServiceImpl, sampleControllerImpl, synchronizeRepositoryImpl, samplePanelRepositoryImpl, samplePanelServiceImpl, samplePanelControllerImpl, runRepositoryImpl, runServiceImpl)
 	return initialization
 }
 
@@ -80,4 +86,22 @@ var (
 	sampleRepoSet  = wire.NewSet(repository.SampleRepositoryInit, wire.Bind(new(repository.SampleRepository), new(*repository.SampleRepositoryImpl)))
 	sampleSvcSet   = wire.NewSet(service.SampleServiceInit, wire.Bind(new(service.SampleService), new(*service.SampleServiceImpl)))
 	sampleCtrlrSet = wire.NewSet(controller.SampleControllerInit, wire.Bind(new(controller.SampleController), new(*controller.SampleControllerImpl)))
+)
+
+/* Synchronize */
+var (
+	synchronizeRepoSet = wire.NewSet(repository.SynchronizeRepositoryInit, wire.Bind(new(repository.SynchronizeRepository), new(*repository.SynchronizeRepositoryImpl)))
+)
+
+/* SamplePanel */
+var (
+	samplePanelRepoSet  = wire.NewSet(repository.SamplePanelRepositoryInit, wire.Bind(new(repository.SamplePanelRepository), new(*repository.SamplePanelRepositoryImpl)))
+	samplePanelSvcSet   = wire.NewSet(service.SamplePanelServiceInit, wire.Bind(new(service.SamplePanelService), new(*service.SamplePanelServiceImpl)))
+	samplePanelCtrlrSet = wire.NewSet(controller.SamplePanelControllerInit, wire.Bind(new(controller.SamplePanelController), new(*controller.SamplePanelControllerImpl)))
+)
+
+/* Run */
+var (
+	runRepoSet = wire.NewSet(repository.RunRepositoryInit, wire.Bind(new(repository.RunRepository), new(*repository.RunRepositoryImpl)))
+	runSvcSet  = wire.NewSet(service.RunServiceInit, wire.Bind(new(service.RunService), new(*service.RunServiceImpl)))
 )

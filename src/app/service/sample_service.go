@@ -34,7 +34,14 @@ func (s SampleServiceImpl) GetSamples(ctx *gin.Context) {
 	slog.Info("Received request to get samples")
 
 	// Get sample_id from query param
-	sampleID := ctx.Query("sample_id")
+	sampleID := ctx.Param("sample_id")
+
+	// Check if sample exists
+	if sampleID != "" && !s.repo.SampleExists(sampleID) {
+		errorMessage := fmt.Sprintf("Sample %s does not exist", sampleID)
+		slog.Error(errorMessage)
+		pkg.PanicExceptionWithMessage(constant.InvalidRequest, errorMessage)
+	}
 
 	// Get samples
 	samples, err := s.repo.GetSamples(sampleID)

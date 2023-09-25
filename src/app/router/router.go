@@ -39,9 +39,19 @@ func Init(init *config.Initialization) *gin.Engine {
 		// Samples
 		samples := secured.Group("/samples")
 		samples.GET("", init.SampleCtrl.GetSamples)
+		samples.GET("/:sample_id", init.SampleCtrl.GetSamples)
 		samples.POST("", init.SampleCtrl.AddSample)
 		samples.PUT("/:sample_id", init.SampleCtrl.UpdateSample)
 		samples.DELETE("/:sample_id", init.SampleCtrl.DeleteSample)
+
+		// Sample Panels
+		samplePanels := secured.Group("/samplespanels")
+		samplePanels.POST("", init.SamplePanelCtrl.CreateSamplePanel)
+		samplePanels.POST("/reset", init.SamplePanelCtrl.ResetSamplePanel)
+		samplePanels.PATCH("/:sample_id/:panel_id", init.SamplePanelCtrl.UpdateSamplePanel)
+		samplePanels.GET("", init.SamplePanelCtrl.GetSamplePanels)
+		samplePanels.GET("/stats", init.SamplePanelCtrl.GetStatistics)
+		samplePanels.POST("/create-run", init.SamplePanelCtrl.CreateRun)
 	}
 
 	return router

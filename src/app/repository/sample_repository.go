@@ -11,6 +11,7 @@ import (
 
 type SampleRepository interface {
 	GetSamples(sampleID string) ([]dao.Sample, error)
+	GetSample(sampleID string) (dao.Sample, error)
 	SampleExists(sampleID string) bool
 	CreateSample(sample dco.AddSampleRequest, userID string) (dao.Sample, error)
 	UpdateSample(sample dco.UpdateSampleRequest, sampleID string) (dao.Sample, error)
@@ -27,23 +28,52 @@ func SampleRepositoryInit() *SampleRepositoryImpl {
 	}
 }
 
+func (s SampleRepositoryImpl) GetSample(sampleID string) (dao.Sample, error) {
+	/* Returns a single sample */
+	sample := dao.Sample{}
+
+	// Get all samples
+	query := `
+		SELECT s.sample_id, s.full_name, s.birthdate, s.sputalysed, s.comment, s.created_at, u.username, s.material
+		FROM samples s
+		LEFT JOIN users u ON s.created_by = u.user_id
+		WHERE s.sample_id = $1
+	`
+
+	// query
+	err := s.db.QueryRow(query, sampleID).Scan(&sample.SampleID,
+		&sample.FullName,
+		&sample.Birthdate,
+		&sample.Sputalysed,
+		&sample.Comment,
+		&sample.CreatedAt,
+		&sample.CreatedBy,
+		&sample.Material,
+	)
+	if err != nil {
+		return sample, err
+	}
+
+	return sample, nil
+}
+
 func (s SampleRepositoryImpl) GetSamples(sampleID string) ([]dao.Sample, error) {
 	/* Returns all samples with an optional filter for sample_id */
 	samples := []dao.Sample{}
 
 	// Get all samples and filter out inactive ones
 	query := `
-		SELECT s.sample_id, s.full_name, s.birthdate, s.comment, s.created_at, u.username, s.material, string_agg(samplespanels.panel_id, ', ') AS panels
+		SELECT s.sample_id, s.full_name, s.birthdate, s.sputalysed, s.comment, s.created_at, u.username, s.material, string_agg(samplespanels.panel_id, ', ') AS panels
 		FROM samples s
 		LEFT JOIN users u ON s.created_by = u.user_id
 		LEFT JOIN samplespanels ON samplespanels.sample_id = s.sample_id AND samplespanels.deleted = false
-		WHERE is_active = TRUE
+		WHERE 1 = 1
 	`
 
 	// Add pagination and filters
 	var params []interface{}
 	if sampleID != "" {
-		query += "AND sample_id = $1"
+		query += "AND s.sample_id LIKE $1"
 
 		// Format param for LIKE query
 		param := fmt.Sprintf("%%%s%%", sampleID)
@@ -67,7 +97,7 @@ func (s SampleRepositoryImpl) GetSamples(sampleID string) ([]dao.Sample, error) 
 	for rows.Next() {
 		var sample dao.Sample
 		var panels sql.NullString
-		if err := rows.Scan(&sample.SampleId,
+		if err := rows.Scan(&sample.SampleID,
 			&sample.FullName,
 			&sample.Birthdate,
 			&sample.Sputalysed,
@@ -109,9 +139,9 @@ func (s SampleRepositoryImpl) SampleExists(sampleID string) bool {
 	return exists
 }
 
-func (s SampleRepositoryImpl) CreateSample(sample dco.AddSampleRequest, userID string) (dao.Sample, error) {
+func (s SampleRepositoryImpl) CreateSample(request dco.AddSampleRequest, userID string) (dao.Sample, error) {
 	/* Creates a new sample using a custom add sample request struct */
-	newSample := dao.Sample{}
+	sample := dao.Sample{}
 
 	// Insert sample
 	query := `
@@ -128,28 +158,37 @@ func (s SampleRepositoryImpl) CreateSample(sample dco.AddSampleRequest, userID s
 				material
 			)
 			VALUES ($1, $2, $3, $4, $5, $6, TRUE, $7)
-			RETURNING created_at, created_by 
+			RETURNING sample_id, full_name, created_at, sputalysed, comment, birthdate, created_by, material
 		)
-		SELECT created_at, users.username
+		SELECT sample_id, full_name, created_at, sputalysed, comment, birthdate, users.username, material
 		FROM new_sample
 		LEFT JOIN users ON new_sample.created_by = users.user_id
 	`
 	err := s.db.QueryRow(
 		query,
-		sample.SampleId,
-		sample.FullName,
-		sample.Sputalysed,
-		sample.Comment,
-		sample.Birthdate,
+		request.SampleId,
+		request.FullName,
+		request.Sputalysed,
+		request.Comment,
+		request.Birthdate,
 		userID,
-		sample.Material,
-	).Scan(&newSample.CreatedAt, &newSample.CreatedBy)
+		request.Material,
+	).Scan(
+		&sample.SampleID,
+		&sample.FullName,
+		&sample.CreatedAt,
+		&sample.Sputalysed,
+		&sample.Comment,
+		&sample.Birthdate,
+		&sample.CreatedBy,
+		&sample.Material,
+	)
 	if err != nil {
-		return newSample, err
+		return sample, err
 	}
 
 	// Return the new sample
-	return newSample, nil
+	return sample, nil
 }
 
 func (s SampleRepositoryImpl) UpdateSample(sample dco.UpdateSampleRequest, sampleID string) (dao.Sample, error) {
@@ -163,17 +202,18 @@ func (s SampleRepositoryImpl) UpdateSample(sample dco.UpdateSampleRequest, sampl
 		WITH updated_sample AS (
 			UPDATE samples SET`
 	if sample.FullName != nil {
-		query += fmt.Sprintf(" full_name = $%d,", len(params)+1)
+		query += fmt.Sprintf(" full_name = $%d", len(params)+1)
 		params = append(params, *sample.FullName)
 	}
 	if sample.Sputalysed != nil {
-		query += fmt.Sprintf(" sputalysed = $%d,", len(params)+1)
+		query += fmt.Sprintf(", sputalysed = $%d", len(params)+1)
 		params = append(params, *sample.Sputalysed)
 	}
 	if sample.Comment != nil {
-		query += fmt.Sprintf(" comment = $%d,", len(params)+1)
+		query += fmt.Sprintf(", comment = $%d", len(params)+1)
 		params = append(params, *sample.Comment)
 	}
+
 	query += fmt.Sprintf(" WHERE sample_id = $%d", len(params)+1)
 	params = append(params, sampleID)
 	query += ` RETURNING sample_id, full_name, created_at, sputalysed, comment, birthdate, created_by, material
@@ -186,7 +226,7 @@ func (s SampleRepositoryImpl) UpdateSample(sample dco.UpdateSampleRequest, sampl
 		query,
 		params...,
 	).Scan(
-		&updatedSample.SampleId,
+		&updatedSample.SampleID,
 		&updatedSample.FullName,
 		&updatedSample.CreatedAt,
 		&updatedSample.Sputalysed,

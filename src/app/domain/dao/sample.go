@@ -1,7 +1,7 @@
 package dao
 
 type Sample struct {
-	SampleId   string  `json:"sample_id"`
+	SampleID   string  `json:"sample_id"`
 	FullName   string  `json:"full_name"`
 	Sputalysed bool    `json:"sputalysed"`
 	Comment    *string `json:"comment"`

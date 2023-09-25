@@ -89,6 +89,36 @@ var (
 	)
 )
 
+/* Synchronize */
+var (
+	synchronizeRepoSet = wire.NewSet(repository.SynchronizeRepositoryInit,
+		wire.Bind(new(repository.SynchronizeRepository), new(*repository.SynchronizeRepositoryImpl)),
+	)
+)
+
+/* SamplePanel */
+var (
+	samplePanelRepoSet = wire.NewSet(repository.SamplePanelRepositoryInit,
+		wire.Bind(new(repository.SamplePanelRepository), new(*repository.SamplePanelRepositoryImpl)),
+	)
+	samplePanelSvcSet = wire.NewSet(service.SamplePanelServiceInit,
+		wire.Bind(new(service.SamplePanelService), new(*service.SamplePanelServiceImpl)),
+	)
+	samplePanelCtrlrSet = wire.NewSet(controller.SamplePanelControllerInit,
+		wire.Bind(new(controller.SamplePanelController), new(*controller.SamplePanelControllerImpl)),
+	)
+)
+
+/* Run */
+var (
+	runRepoSet = wire.NewSet(repository.RunRepositoryInit,
+		wire.Bind(new(repository.RunRepository), new(*repository.RunRepositoryImpl)),
+	)
+	runSvcSet = wire.NewSet(service.RunServiceInit,
+		wire.Bind(new(service.RunService), new(*service.RunServiceImpl)),
+	)
+)
+
 func Init() *Initialization {
 	wire.Build(
 		NewInitialization,
@@ -110,6 +140,12 @@ func Init() *Initialization {
 		sampleRepoSet,
 		sampleSvcSet,
 		sampleCtrlrSet,
+		synchronizeRepoSet,
+		samplePanelRepoSet,
+		samplePanelSvcSet,
+		samplePanelCtrlrSet,
+		runRepoSet,
+		runSvcSet,
 	)
 	return nil
 }

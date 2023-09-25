@@ -10,6 +10,7 @@ import (
 
 type PanelRepository interface {
 	GetPanels(panelID string) ([]dao.Panel, error)
+	GetPanel(panelID string) (dao.Panel, error)
 	PanelExists(panelID string) bool
 }
 
@@ -21,6 +22,27 @@ func PanelRepositoryInit() *PanelRepositoryImpl {
 	return &PanelRepositoryImpl{
 		db: driver.DB,
 	}
+}
+
+func (p PanelRepositoryImpl) GetPanel(panelID string) (dao.Panel, error) {
+	/* Returns a single panel */
+	panel := dao.Panel{}
+
+	// Get all panels and filter out inactive ones
+	query := `
+		SELECT panel_id, display_name, ready_mix
+		FROM panels
+		WHERE panel_id = $1 AND is_active = TRUE
+	`
+
+	// query
+	err := p.db.QueryRow(query, panelID).Scan(&panel.PanelID, &panel.DisplayName, &panel.ReadyMix)
+	if err != nil {
+		slog.Error("Error getting panel", err)
+		return panel, err
+	}
+
+	return panel, nil
 }
 
 func (p PanelRepositoryImpl) GetPanels(panelID string) ([]dao.Panel, error) {
@@ -41,7 +63,6 @@ func (p PanelRepositoryImpl) GetPanels(panelID string) ([]dao.Panel, error) {
 		params = append(params, panelID)
 	}
 	query += " ORDER BY display_name LIMIT 100;"
-	slog.Info(query)
 
 	// query
 	rows, err := p.db.Query(query, params...)

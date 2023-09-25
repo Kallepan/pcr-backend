@@ -1,6 +1,6 @@
 package dao
 
-type SampleAnalysis struct {
+type SamplePanel struct {
 	Run      *string `json:"run"`
 	Device   *string `json:"device"`
 	Position *int    `json:"position"`
@@ -11,4 +11,9 @@ type SampleAnalysis struct {
 
 	Sample Sample `json:"sample"`
 	Panel  Panel  `json:"panel"`
+}
+
+type Statistic struct {
+	PanelID string `json:"panel_id"`
+	Count   int    `json:"count"`
 }

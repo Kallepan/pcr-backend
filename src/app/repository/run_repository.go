@@ -231,7 +231,7 @@ func (r RunRepositoryImpl) CreateRun(elements []dco.ExportData, device string, r
 			element.LastRunId,
 		)
 	}
-	// Insert date, run, device into excel
+	// Insert date, device, run into excel
 	file.SetCellValue(
 		"Lauf",
 		"B9",
@@ -240,12 +240,12 @@ func (r RunRepositoryImpl) CreateRun(elements []dco.ExportData, device string, r
 	file.SetCellValue(
 		"Lauf",
 		"C9",
-		run,
+		device,
 	)
 	file.SetCellValue(
 		"Lauf",
 		"D9",
-		device,
+		run,
 	)
 
 	// Save file

@@ -11,10 +11,13 @@ import (
 	"database/sql"
 	"fmt"
 	"log/slog"
+	"sync"
 	"time"
 
 	"gitlab.com/kallepan/pcr-backend/driver"
 )
+
+var syncLock sync.Mutex
 
 type SynchronizeRepository interface {
 	Synchronize()
@@ -31,6 +34,9 @@ func SynchronizeRepositoryInit() *SynchronizeRepositoryImpl {
 }
 
 func (s SynchronizeRepositoryImpl) Synchronize() {
+	syncLock.Lock()
+	defer syncLock.Unlock()
+
 	tx, err := s.db.Begin()
 	if err != nil {
 		slog.Error("Error starting transaction", err)

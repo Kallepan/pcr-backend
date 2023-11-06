@@ -7,6 +7,5 @@ import (
 )
 
 func Init(init *config.Initialization, interval time.Duration) {
-
 	initSynchronization(init.SynchroRepo, interval)
 }

@@ -200,7 +200,14 @@ func deleteOutdatedSamplesPanels(tx *sql.Tx) error {
 		run_date = deleted_samplespanels.run_date,
 		deleted = deleted_samplespanels.deleted
 	FROM deleted_samplespanels
-	WHERE LEFT(sm.sample_id,10) = LEFT(deleted_samplespanels.sample_id,10) AND LEFT(sm.panel_id,3) = LEFT(deleted_samplespanels.panel_id,3);
+	WHERE LEFT(sm.sample_id,10) = LEFT(deleted_samplespanels.sample_id,10) 
+		AND LEFT(sm.panel_id,3) = LEFT(deleted_samplespanels.panel_id,3)
+		AND NOT EXISTS (
+			SELECT 1
+			FROM samplespanels s
+			WHERE s.run_date = deleted_samplespanels.run_date
+			  AND s.position = deleted_samplespanels.position
+	);
 	`)
 
 	return err

@@ -20,12 +20,12 @@ spec:
       imagePullSecrets:
       - name: regcred
       containers:
-        - image: kallepan/pcr-backend:dev
+        - image: kallepan/pcr-backend
           imagePullPolicy: Always
           name: pcr-backend
           envFrom:
             - secretRef:
-                name: oe-secrets
+                name: secrets
           ports:
             - containerPort: 8080
               name: gin

@@ -1,4 +1,4 @@
-FROM golang:alpine AS builder
+FROM golang:1.21-alpine as builder
 
 WORKDIR /project/pcr-backend
 
@@ -16,4 +16,4 @@ COPY migrations /app/migrations
 
 EXPOSE 8080
 
-ENTRYPOINT [ "/app/build/main", "--prod" ]
+ENTRYPOINT [ "/app/build/main" ]

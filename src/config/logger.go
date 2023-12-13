@@ -19,6 +19,8 @@ func getLoggerLevel() slog.Level {
 	switch os.Getenv("LOG_LEVEL") {
 	case "DEBUG":
 		return slog.LevelDebug
+	case "INFO":
+		return slog.LevelInfo
 	case "ERROR":
 		return slog.LevelError
 	default:

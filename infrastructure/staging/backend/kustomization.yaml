@@ -4,3 +4,8 @@ kind: Kustomization
 resources:
   - deployment.yaml
   - service.yaml
+
+images:
+- name: kallepan/pcr-backend
+  newName: kallepan/pcr-backend
+  newTag: IMAGE_TAG

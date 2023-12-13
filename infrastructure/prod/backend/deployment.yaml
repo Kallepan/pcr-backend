@@ -25,7 +25,7 @@ spec:
           name: pcr-backend
           envFrom:
             - secretRef:
-                name: oe-secrets
+                name: secrets
           ports:
             - containerPort: 8080
               name: gin

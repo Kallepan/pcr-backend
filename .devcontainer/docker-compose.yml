@@ -1,0 +1,27 @@
+version: '3.9'
+
+services:
+  app:
+    env_file:
+      - .env
+    build:
+      context: .
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    network_mode: service:db
+    command: sleep infinity
+    depends_on:
+      - db
+    volumes:
+      - ../../:/workspaces:cached
+
+  db:
+    image: postgres:16.0-alpine
+    env_file:
+      - .env
+    restart: always
+    volumes:
+      - db-data:/var/lib/postgresql/data
+
+volumes:
+  db-data:

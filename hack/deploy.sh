@@ -21,11 +21,11 @@ kubectl create secret docker-registry -n $NAMESPACE \
     --kubeconfig=$KUBECONFIG
 
 # build and push production image
-docker build -t $DOCKER_REGISTRY_USERNAME/$DOCKER_REGISTRY_REPOSITORY:${VERSION} -f Dockerfile.prod .
+docker build --platform linux/amd64 -t $DOCKER_REGISTRY_USERNAME/$DOCKER_REGISTRY_REPOSITORY:${VERSION} -f Dockerfile.prod .
 docker push $DOCKER_REGISTRY_USERNAME/$DOCKER_REGISTRY_REPOSITORY:${VERSION}
 
 # Deploy new production image
 cd infrastructure/prod
 kubectl kustomize . > run.yaml
-sed -i "s/IMAGE_TAG/${VERSION}/g" run.yaml
+sed -i '' "s/IMAGE_TAG/${VERSION}/g" run.yaml
 kubectl apply -f run.yaml --kubeconfig=$KUBECONFIG

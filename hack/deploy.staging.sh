@@ -29,13 +29,13 @@ kubectl delete deployment $DOCKER_REGISTRY_REPOSITORY -n $NAMESPACE --kubeconfig
 kubectl delete deployment postgres -n $NAMESPACE --kubeconfig=$KUBECONFIG
 
 # build and push staging image
-docker build -t $DOCKER_REGISTRY_USERNAME/$DOCKER_REGISTRY_REPOSITORY:${VERSION} .
+docker build --platform linux/amd64 -t $DOCKER_REGISTRY_USERNAME/$DOCKER_REGISTRY_REPOSITORY:${VERSION} .
 docker push $DOCKER_REGISTRY_USERNAME/$DOCKER_REGISTRY_REPOSITORY:${VERSION}
 
 # Deploy new staging image
 cd infrastructure/staging
 kubectl kustomize . > run.yaml
-sed -i "s/IMAGE_TAG/${VERSION}/g" run.yaml
+sed -i '' "s/IMAGE_TAG/${VERSION}/g" run.yaml
 kubectl apply -f run.yaml --kubeconfig=$KUBECONFIG
 
 # remove staging migration from migrations

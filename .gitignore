@@ -19,3 +19,6 @@
 
 # local run files
 run.yaml
+
+# IDE files
+.DS_Store

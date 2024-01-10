@@ -39,37 +39,37 @@ func (s SynchronizeRepositoryImpl) Synchronize() {
 
 	tx, err := s.db.Begin()
 	if err != nil {
-		slog.Error("Error starting transaction", err)
+		slog.Error("Error starting transaction", "error", err)
 		return
 	}
 
 	defer func() {
 		if err := recover(); err != nil {
-			slog.Error("Error synchronizing", err)
+			slog.Error("Error synchronizing", "error", err)
 			tx.Rollback()
 		}
 	}()
 
 	if err := synchronizeAnalysesTable(tx); err != nil {
-		slog.Error("Error while synchronizing analyses table", err)
+		slog.Error("Error while synchronizing analyses table", "error", err)
 		tx.Rollback()
 		return
 	}
 
 	if err := synchronizeSamples(tx); err != nil {
-		slog.Error("Error while synchronizing samples table")
+		slog.Error("Error while synchronizing samples table", "error", err)
 		tx.Rollback()
 		return
 	}
 
 	if err := deleteOutdatedSamplesPanels(tx); err != nil {
-		slog.Error("Error while deleting outdated samplespanels entries", err)
+		slog.Error("Error while deleting outdated samplespanels entries", "error", err)
 		tx.Rollback()
 		return
 	}
 
 	if err := deleteEmptySamples(tx); err != nil {
-		slog.Error("Error while deleting empty samples entries", err)
+		slog.Error("Error while deleting empty samples entries", "error", err)
 		tx.Rollback()
 		return
 	}
@@ -120,16 +120,16 @@ func synchronizeSamples(tx *sql.Tx) error {
 
 	_, err := tx.Exec(`
 	INSERT INTO samples (sample_id, birthdate, full_name, material, created_by)
-		SELECT DISTINCT ON (ingenious.barcode, ingenious.birthdate, ingenious.patient) ingenious.barcode, ingenious.birthdate, ingenious.patient, ingenious.specimen, users.user_id
-		FROM ingenious
-		LEFT JOIN samples ON samples.sample_id = ingenious.barcode
-		LEFT JOIN (
-			SELECT user_id
-			FROM users
-			LIMIT 1
-		) users ON 1=1
-		WHERE samples.sample_id IS NULL 
-		AND ingenious.barcode IS NOT NULL AND ingenious.patient IS NOT NULL;
+	SELECT DISTINCT ON (ingenious.barcode, ingenious.birthdate, ingenious.patient) ingenious.barcode, ingenious.birthdate, ingenious.patient, ingenious.specimen, users.user_id
+	FROM ingenious
+	LEFT JOIN samples ON samples.sample_id = ingenious.barcode
+	LEFT JOIN (
+		SELECT user_id
+		FROM users
+		LIMIT 1
+	) users ON 1=1
+	WHERE samples.sample_id IS NULL 
+	AND ingenious.barcode IS NOT NULL AND ingenious.patient IS NOT NULL;
 	
 	WITH filtered_samples AS (
 		SELECT DISTINCT ingenious.barcode, analyses.panel_id, users.user_id
@@ -145,15 +145,15 @@ func synchronizeSamples(tx *sql.Tx) error {
 		ingenious.patient IS NOT NULL
 	) 
 	INSERT INTO samplespanels (sample_id, panel_id, created_by)
-		SELECT DISTINCT filtered_samples.barcode, filtered_samples.panel_id, filtered_samples.user_id
-		FROM filtered_samples
-		LEFT JOIN samplespanels
-		ON 
-			samplespanels.sample_id = filtered_samples.barcode AND
-			samplespanels.panel_id = filtered_samples.panel_id
-		WHERE 
-			samplespanels.sample_id IS NULL AND
-			samplespanels.panel_id IS NULL;
+	SELECT DISTINCT filtered_samples.barcode, filtered_samples.panel_id, filtered_samples.user_id
+	FROM filtered_samples
+	LEFT JOIN samplespanels
+	ON 
+		samplespanels.sample_id = filtered_samples.barcode AND
+		samplespanels.panel_id = filtered_samples.panel_id
+	WHERE 
+		samplespanels.sample_id IS NULL AND
+		samplespanels.panel_id IS NULL;
 	`)
 
 	return err

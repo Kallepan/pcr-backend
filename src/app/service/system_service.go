@@ -1,10 +1,10 @@
 package service
 
 import (
+	"log/slog"
 	"net/http"
 
 	"github.com/gin-gonic/gin"
-	log "github.com/sirupsen/logrus"
 	"gitlab.com/kallepan/pcr-backend/app/constant"
 	"gitlab.com/kallepan/pcr-backend/app/pkg"
 	"gitlab.com/kallepan/pcr-backend/app/repository"
@@ -20,10 +20,11 @@ type SystemServiceImpl struct {
 
 func (s SystemServiceImpl) GetPing(c *gin.Context) {
 	defer pkg.PanicHandler(c)
+	slog.Info("GetPing")
 
 	data, err := s.systemRepository.GetVersion()
 	if err != nil {
-		log.Error("Got error when get version: ", err)
+		slog.Error("Got error when get version: ", err)
 		pkg.PanicException(constant.DataNotFound)
 	}
 

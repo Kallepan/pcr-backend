@@ -77,7 +77,7 @@ func (p PrintServiceImpl) PrintSample(ctx *gin.Context) {
 
 	// If no error occurred, send the labels to the printer
 	for i, label := range labels {
-		slog.Info("Printing label", i+1)
+		slog.Info("Printing label", "id", i+1)
 		if _, err := fmt.Fprint(conn, label); err != nil {
 			slog.Error("Error sending label to printer", err)
 			// Error does not need to be handled, we want to print as many labels as possible

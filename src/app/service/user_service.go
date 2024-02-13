@@ -74,7 +74,7 @@ func (u UserServiceImpl) RegisterUser(ctx *gin.Context) {
 
 	// Check if user exists
 	if u.userRepository.CheckIfUserExists(user.Username) {
-		slog.Info("User already exists...", user.Username)
+		slog.Info("User already exists...", "user", user.Username)
 		pkg.PanicException(constant.InvalidRequest)
 	}
 
